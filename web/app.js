@@ -86,13 +86,28 @@
   function tz() { try { return Intl.DateTimeFormat().resolvedOptions().timeZone || 'Asia/Kolkata'; } catch (e) { return 'Asia/Kolkata'; } }
   function testing() { return !!CFG.testing || lsGet('lifeos_test') === '1'; }
 
+  // Test mode: every time on offer is 1 to 10 minutes away, so testers can go chat to chat.
+  var TEST_MINUTES = [1, 3, 5, 10];
+  function testSlots() {
+    var now = new Date();
+    return TEST_MINUTES.map(function (m) {
+      var d = new Date(now.getTime() + m * MIN); d.setSeconds(0, 0);
+      if (d - now < 40000) { d = new Date(d.getTime() + MIN); }
+      return { d: d, day: dayWord(d, now) || 'Tomorrow', note: 'in ' + m + ' min' };
+    });
+  }
+  function testTimes() {
+    if (!testing()) { return null; }
+    return testSlots().map(function (c) { return c.day + ', ' + fmtClock(c.d) + ' (' + c.note + ')'; });
+  }
   // First chat times: after work or before bed, from now on.
   function onbSlots() {
     var now = new Date(), out = [];
     if (testing()) {
-      var soon = new Date(now.getTime() + 3 * MIN); soon.setSeconds(0, 0);
-      var w = dayWord(soon, now);
-      out.push({ d: soon, day: w });
+      return testSlots().map(function (c, i) {
+        var clock = fmtClock(c.d);
+        return { id: 't' + i, label: c.day + ', ' + clock + ' (' + c.note + ')', lower: c.day.toLowerCase() + ' at ' + clock, day: c.day, clock: clock.split(' ')[0] };
+      });
     }
     [0, 1, 2].forEach(function (dd) {
       [[19, 30], [21, 0]].forEach(function (hm) {
@@ -116,7 +131,7 @@
     }
     return a[key + '@'].iso;
   }
-  function isDue(iso) { return !!iso && Date.now() >= Date.parse(iso) - 5 * MIN; }
+  function isDue(iso) { return !!iso && Date.now() >= Date.parse(iso) - (testing() ? 0 : 5 * MIN); }
 
   // ---------- errors ----------
   function friendly(e) {
@@ -411,6 +426,7 @@
     sendCode: sendCode,
     verify: verify,
     onbSlots: onbSlots,
+    testTimes: testTimes,
     onboarded: function () { queueSave(); },
     enablePush: enablePush,
     pushState: pushState,

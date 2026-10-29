@@ -1115,6 +1115,7 @@ class Component extends DCLogic {
   lockKey(conv) { return conv === 2 ? 'onb_time' : 'c' + (conv - 1) + '_book'; }
   times(a) {
     a = a || {};
+    if (window.LIFEOS_REAL && window.LIFEOS_REAL.testTimes) { var tt = window.LIFEOS_REAL.testTimes(); if (tt) { return tt; } }
     if (!a.b_work) { return ['Tomorrow, 8:00 am', 'Tomorrow, 7:30 pm', 'Day after, 8:00 am', 'Day after, 7:30 pm']; }
     var after = { 'Daytime, roughly 9 to 6': '7:00 pm', 'Early, roughly 7 to 4': '5:30 pm', 'Evenings or nights': '2:00 pm' }[a.b_work] || '6:00 pm';
     var tag = { 'Daytime, roughly 9 to 6': 'after work', 'Early, roughly 7 to 4': 'after work', 'Evenings or nights': 'before your shift' }[a.b_work] || 'evening';

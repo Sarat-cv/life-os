@@ -120,7 +120,8 @@ const IPHONE = 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebK
   const before = (await db()).profiles[0].next_chat_at;
   await tap('Change the time');
   const opts = await app.locator('button').allInnerTexts();
-  const pick = opts.find((s) => /^(Tomorrow|Day after), /.test(s) && !/after work/.test(s)) || opts.find((s) => /^Day after/.test(s));
+  const pick = opts.find((s) => /\(in 10 min\)/.test(s)) || opts.find((s) => /^(Tomorrow|Day after), /.test(s) && !/after work/.test(s));
+  ok(opts.filter((s) => /\(in \d+ min\)/.test(s)).length === 4, 'test mode: all four reschedule options are within 10 minutes');
   await tap(pick);
   await p.waitForTimeout(900);
   t = await text();
