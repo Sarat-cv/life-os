@@ -1,0 +1,22 @@
+# Manual health check: asks Supabase whether the app can start (anonymous sign-in, tables, push key).
+name: Check
+on: workflow_dispatch
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ask Supabase
+        env:
+          URL: https://${{ vars.SUPABASE_PROJECT_REF }}.supabase.co
+          KEY: sb_publishable_Fb2rW3MS_h3tSDs5gQJZ5g_ADXSBCrk
+        run: |
+          say() { echo "::notice::$1"; }
+          r=$(curl -s -w ' HTTP%{http_code}' -X POST "$URL/auth/v1/signup" -H "apikey: $KEY" -H "Content-Type: application/json" -d '{}')
+          say "anonymous sign-in: $(echo "$r" | sed 's/"access_token":"[^"]*"/"access_token":"…"/; s/"refresh_token":"[^"]*"/"refresh_token":"…"/' | cut -c1-300)"
+          tok=$(echo "$r" | sed -n 's/.*"access_token":"\([^"]*\)".*/\1/p')
+          if [ -n "$tok" ]; then
+            say "profiles read: $(curl -s -w ' HTTP%{http_code}' "$URL/rest/v1/profiles?select=id" -H "apikey: $KEY" -H "Authorization: Bearer $tok" | cut -c1-200)"
+            say "events read: $(curl -s -w ' HTTP%{http_code}' "$URL/rest/v1/events?select=id&limit=1" -H "apikey: $KEY" -H "Authorization: Bearer $tok" | cut -c1-200)"
+          fi
+          say "push key: $(curl -s -w ' HTTP%{http_code}' "$URL/functions/v1/vapid" -H "apikey: $KEY" | cut -c1-200)"
+          say "auth settings: $(curl -s "$URL/auth/v1/settings" -H "apikey: $KEY" | cut -c1-400)"
