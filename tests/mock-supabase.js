@@ -37,8 +37,9 @@
         store(db); return { error: null };
       }
       if (mode === 'insert') {
-        if (payload.user_id !== uid) { return { error: { message: 'row-level security' } }; }
-        rows.push(Object.assign({ id: rows.length + 1, created_at: new Date().toISOString() }, payload)); store(db); return { error: null };
+        var list = Array.isArray(payload) ? payload : [payload];
+        if (list.some(function (x) { return x.user_id !== uid; })) { return { error: { message: 'row-level security' } }; }
+        list.forEach(function (x) { rows.push(Object.assign({ id: rows.length + 1, created_at: new Date().toISOString() }, x)); }); store(db); return { error: null };
       }
       if (mode === 'update') {
         rows.filter(mine).forEach(function (x) { Object.assign(x, payload); }); store(db); return { error: null };
@@ -58,6 +59,12 @@
             var s = { access_token: 't', user: { id: uidFor(o.email), email: o.email } };
             localStorage.setItem('__mocksession', JSON.stringify(s));
             listeners.forEach(function (cb) { cb('SIGNED_IN', s); });
+            return Promise.resolve({ data: { session: s }, error: null });
+          },
+          signInAnonymously: function () {
+            var id = '00000000-0000-0000-0000-' + ('000000000000' + Math.floor(Math.random() * 1e12).toString(16)).slice(-12);
+            var s = { access_token: 't', user: { id: id, email: '', is_anonymous: true } };
+            localStorage.setItem('__mocksession', JSON.stringify(s));
             return Promise.resolve({ data: { session: s }, error: null });
           },
           getSession: function () { return Promise.resolve({ data: { session: sess() } }); },

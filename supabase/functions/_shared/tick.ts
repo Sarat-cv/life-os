@@ -70,8 +70,8 @@ async function deliver(env: TickEnv, p: any, msg: { title: string; body: string 
   let emailed = false;
   if (!delivered && allowEmail && env.resendKey) {
     try {
-      const u = await env.db.adminUser(p.id);
-      const to = u && (u.email || (u.user && u.user.email));
+      let to = p.email || '';
+      if (!to) { const u = await env.db.adminUser(p.id); to = (u && (u.email || (u.user && u.user.email))) || ''; }
       if (to) {
         const f = env.fetcher || fetch;
         const res = await f('https://api.resend.com/emails', {
@@ -94,7 +94,7 @@ async function deliver(env: TickEnv, p: any, msg: { title: string; body: string 
 export async function runTick(env: TickEnv) {
   const now = env.now || new Date();
   const iso = (ms: number) => new Date(now.getTime() + ms).toISOString();
-  const cols = 'id,name,tz,state,next_chat_n,next_chat_at,notified_at,reminded_at';
+  const cols = 'id,name,email,tz,state,next_chat_n,next_chat_at,notified_at,reminded_at';
   const out = { due: 0, sent: 0, emailed: 0, reminders: 0, skippedQuiet: 0 };
 
   const due = await env.db.get('profiles?select=' + cols +

@@ -45,7 +45,11 @@
     auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false, storageKey: 'lifeos-auth' }
   });
 
-  var session = null, profile = null, chats = null;
+  // Pilot default: no email code. Each phone gets a private account on first open,
+  // and the email is kept on the profile. Set loginWithCode: true in config.js to bring codes back.
+  var NO_CODE = CFG.loginWithCode !== true;
+  var session = null, profile = null, chats = null, emailLocal = '';
+  var evq = [], evT = null, lastCtx = '', lastApp = '';
   var pushOnLocal = false, pushCache = null;
   var saveT = null, lastSaved = '', saving = false;
   var pending = [];
@@ -126,6 +130,13 @@
 
   // ---------- login ----------
   function sendCode(email) {
+    if (NO_CODE) {
+      if (!/\S+@\S+\.\S+/.test(email)) { return Promise.reject(new Error('That email doesn’t look right. Check it and try again.')); }
+      if (!session) { return Promise.reject(new Error('I can’t reach the internet right now. Check your connection and try again.')); }
+      emailLocal = email.toLowerCase();
+      track('action', 'email_given');
+      return Promise.resolve();
+    }
     return sb.auth.signInWithOtp({ email: email, options: { shouldCreateUser: true } }).then(function (r) {
       if (r.error) { throw friendly(r.error); }
     }, function (e) { throw friendly(e); });
@@ -148,6 +159,7 @@
     if (!session) { profile = null; return Promise.resolve(null); }
     return sb.from('profiles').select('*').eq('id', session.user.id).maybeSingle().then(function (r) {
       profile = r.data || null;
+      if (profile && profile.email) { emailLocal = profile.email; }
       pushOnLocal = !!(profile && profile.push_on);
       pushCache = null;
       return profile;
@@ -228,7 +240,8 @@
       next_chat_n: waiting ? n : null,
       next_chat_at: waiting ? whenFor(s.a, key) : null,
       tz: tz(),
-      push_on: pushOnLocal
+      push_on: pushOnLocal,
+      email: emailLocal || null
     };
     var str = JSON.stringify(row);
     if (str === lastSaved) { return; }
@@ -275,7 +288,10 @@
   }
   function panel(id) { ['menuMain', 'menuBug', 'menuDel'].forEach(function (p) { $(p).hidden = p !== id; }); }
   function openMenu() {
-    $('menuWho').textContent = session ? 'Signed in as ' + session.user.email : 'Not signed in';
+    var who = emailLocal || (session && session.user.email) || '';
+    $('menuWho').textContent = who ? 'Your email: ' + who : '';
+    $('mSignOut').hidden = NO_CODE;
+    track('action', 'menu_open');
     $('menuMsg').textContent = '';
     panel('menuMain');
     $('menu').classList.add('on');
@@ -295,15 +311,15 @@
     $('bugErr').textContent = 'Sending…';
     sb.from('bug_reports').insert({ user_id: session.user.id, screen: where() + ' · ' + navigator.userAgent.slice(0, 120), note: t }).then(function (r) {
       if (r.error) { $('bugErr').textContent = 'Couldn’t send it. Check your connection and try again.'; return; }
-      panel('menuMain'); $('menuMsg').textContent = 'Thank you. Your report is in.';
+      panel('menuMain'); $('menuMsg').textContent = 'Thank you. Your report is in.'; track('action', 'bug_report');
     });
   });
   $('mExport').addEventListener('click', function () {
     if (!session) { $('menuMsg').textContent = 'Sign in first.'; return; }
     $('menuMsg').textContent = 'Gathering your story…';
-    var t = ['profiles', 'story_markers', 'chats', 'messages', 'safety_events', 'plan_steps', 'step_logs', 'quotes'];
+    var t = ['profiles', 'story_markers', 'chats', 'messages', 'safety_events', 'plan_steps', 'step_logs', 'quotes', 'events'];
     Promise.all(t.map(function (name) { return sb.from(name).select('*'); })).then(function (rs) {
-      var out = { exported_at: new Date().toISOString(), email: session.user.email };
+      var out = { exported_at: new Date().toISOString(), email: emailLocal || session.user.email || '' };
       rs.forEach(function (r, i) { out[t[i]] = r.data || []; });
       var text = JSON.stringify(out, null, 2);
       var file = null;
@@ -336,12 +352,62 @@
 
   // ---------- landing (iPhone Safari, before Add to Home Screen) ----------
   if (isIOS && !standalone && lsGet('lifeos_browser_ok') !== '1') { $('landing').classList.add('on'); }
-  $('landStart').addEventListener('click', function () { $('landA').hidden = true; $('landB').hidden = false; $('landing').scrollTop = 0; });
-  $('landSkip').addEventListener('click', function () { lsSet('lifeos_browser_ok', '1'); $('landing').classList.remove('on'); });
+  if ($('landing').classList.contains('on')) { track('screen', 'landing'); }
+  $('landStart').addEventListener('click', function () { track('screen', 'install_steps'); $('landA').hidden = true; $('landB').hidden = false; $('landing').scrollTop = 0; });
+  $('landSkip').addEventListener('click', function () { track('action', 'continue_in_safari'); lsSet('lifeos_browser_ok', '1'); $('landing').classList.remove('on'); });
+
+  // ---------- journey tracking: every screen, chat step and answer, in order ----------
+  function track(kind, name, detail) {
+    evq.push({ kind: kind, name: name, detail: detail || null, created_at: new Date().toISOString() });
+    if (!evT) { evT = setTimeout(flushEvents, 1500); }
+  }
+  function flushEvents() {
+    evT = null;
+    if (!session || !evq.length) { if (evq.length) { evT = setTimeout(flushEvents, 3000); } return; }
+    var batch = evq.splice(0, evq.length).map(function (e) { return Object.assign({ user_id: session.user.id }, e); });
+    sb.from('events').insert(batch).then(function (r) {
+      if (r && r.error) { console.warn('events', r.error); evq = batch.map(function (e) { delete e.user_id; return e; }).concat(evq); evT = setTimeout(flushEvents, 10000); }
+    }, function () { evq = batch.concat(evq); evT = setTimeout(flushEvents, 10000); });
+  }
+  var hook = { run: null, _app: '', _ctx: null };
+  Object.defineProperty(hook, 'appStep', {
+    get: function () { return this._app; },
+    set: function (v) {
+      this._app = v;
+      if (v && v !== lastApp) {
+        var app = chats && chats._children && chats._children['child:App'], st = (app && app.state) || {};
+        var d = { from: lastApp || null };
+        if (lastApp === 'score') { d.score = st.score; }
+        if (lastApp === 'area') { d.area = st.area; }
+        if (lastApp === 'story') { d.picked = st.reasons; d.own_words = !!(st.story || '').trim(); }
+        if (lastApp === 'time') { d.slot = st.slot; }
+        lastApp = v;
+        track('screen', 'setup_' + v, d);
+      }
+    }
+  });
+  Object.defineProperty(hook, 'ctx', {
+    get: function () { return this._ctx; },
+    set: function (c) {
+      this._ctx = c;
+      if (!c || c.phase === 'onb') { return; }
+      var key = c.phase + '|' + c.chat + '|' + (c.step || '');
+      if (key === lastCtx) { return; }
+      var prev = lastCtx.split('|');
+      lastCtx = key;
+      var d = { chat: c.chat, path: c.path || null };
+      if (prev[0] === 'chat' && prev[2] && chats) { d.answered = prev[2]; d.answer = chats.state.a[prev[2]] === undefined ? null : chats.state.a[prev[2]]; }
+      var name = c.phase === 'chat' ? 'chat' + c.chat + '_' + c.step : ({ lock: 'home', resched: 'reschedule', end: 'chat_end' }[c.phase] || c.phase);
+      track(c.phase === 'chat' ? 'chat_step' : 'screen', name, d);
+    }
+  });
+  window.LIFEOS_HOOK = hook;
+  document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'hidden') { track('action', 'app_closed', { at: lastCtx || lastApp }); flushEvents(); } });
 
   // ---------- the bridge the screens use ----------
   window.LIFEOS_REAL = {
-    signedIn: function () { return !!session; },
+    noCode: NO_CODE,
+    signedIn: function () { return NO_CODE ? !!emailLocal : !!session; },
     sendCode: sendCode,
     verify: verify,
     onbSlots: onbSlots,
@@ -378,12 +444,24 @@
 
   sb.auth.getSession().then(function (r) {
     session = (r && r.data && r.data.session) || null;
+    if (!session && NO_CODE) {
+      return sb.auth.signInAnonymously().then(function (a) {
+        if (a.error || !a.data || !a.data.session) { throw a.error || new Error('no session'); }
+        session = a.data.session;
+        track('action', 'first_open', { standalone: standalone, ios: isIOS });
+        return null;
+      });
+    }
     return session ? loadProfile().catch(function () { return null; }) : null;
   }).then(function () {
+    track('action', 'app_open', { standalone: standalone });
     mount();
     if (profile && profile.state && profile.state.phase && profile.state.phase !== 'onb') { restore(profile.state); }
     if (session && pushSupported() && Notification.permission === 'granted' && (!isIOS || standalone)) { subscribe().catch(function () {}); }
     flush();
+  }, function (e) {
+    console.warn('start', e);
+    $('app').innerHTML = '<div class="boot" style="padding: 24px; text-align: center; line-height: 1.5">I can’t start right now. Check your internet connection, then close and reopen Life OS.</div>';
   });
 
   // Flip the home screen to "Let's talk now" when the time comes, and pick up changes from another device.

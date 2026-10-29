@@ -621,11 +621,11 @@ class Component extends DCLogic {
       slotClock: slotObj ? slotObj.clock : '',
       email: s.email,
       code: s.code,
-      isReal: !!R,
-      saveTitle: s.returning ? 'Welcome back' : 'Save your progress',
-      saveBody: s.returning ? 'Enter the email you used before. I’ll send you a 6-digit code.' : 'So nothing you’ve shared is lost. I’ll email you a 6-digit code. No passwords to remember.',
+      isReal: !!R && !R.noCode,
+      saveTitle: (R && R.noCode) ? 'Where can I reach you?' : (s.returning ? 'Welcome back' : 'Save your progress'),
+      saveBody: (R && R.noCode) ? 'Your email, so your story stays yours. If notifications are off, I’ll send my reminders here.' : s.returning ? 'Enter the email you used before. I’ll send you a 6-digit code.' : 'So nothing you’ve shared is lost. I’ll email you a 6-digit code. No passwords to remember.',
       saveSmall: R ? 'We’ll never share your email or send you marketing. Your answers are stored securely in India, and an AI helps me write my messages. You can download or delete everything anytime.' : 'We’ll never share your email or send you marketing.',
-      sendLabel: s.busy ? 'Sending…' : 'Send code',
+      sendLabel: s.busy ? 'Saving…' : ((R && R.noCode) ? 'Continue' : 'Send code'),
       verifyLabel: s.busy ? 'Checking…' : 'Verify',
       resendLabel: s.resent ? 'Sent again. Check spam too' : 'Resend code',
       codeNote: R ? 'It can take a minute to arrive. Check your spam folder too.' : 'This preview doesn’t send real emails. Use 482913, or any 6 digits.',
@@ -659,7 +659,7 @@ class Component extends DCLogic {
         if (!R) { self.go('code'); return; }
         if (s.busy) { return; }
         self.setState({ busy: true, err: '' });
-        R.sendCode(s.email.trim()).then(function () { self.setState({ busy: false, code: '', step: 'code', err: '' }); }, fail);
+        R.sendCode(s.email.trim()).then(function () { self.setState({ busy: false, code: '', step: R.noCode ? 'notify' : 'code', err: '' }); }, fail);
       },
       codeNext: function () {
         if (!/^\d{6}$/.test(s.code || '')) { self.setState({ err: 'Enter the 6 digits from the email.' }); return; }

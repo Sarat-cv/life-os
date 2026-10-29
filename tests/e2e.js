@@ -64,13 +64,11 @@ const IPHONE = 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebK
   const first = slots.find((s) => /^(Today|Tomorrow), \d/.test(s));
   ok(!!first, 'chat times are real times from now: ' + first);
   await tap(first); await tap('Book it');
-  ok(/stored securely in India/.test(await text()), 'save screen explains storage and AI before the email');
-  await app.locator('#email').fill('asha@example.com'); await tap('Send code');
-  ok(/Check your email/.test(await text()) && /spam/.test(await text()), 'code screen, with the real-email note');
-  await app.locator('#code').fill('000000'); await tap('Verify');
-  ok(/That code didn’t work/.test(await text()), 'a wrong code shows a friendly error');
-  await app.locator('#code').fill('482913'); await tap('Verify');
-  ok(/Can I reach you/.test(await text()), 'right code moves on to notifications');
+  ok(/stored securely in India/.test(await text()) && /Where can I reach you/.test(await text()), 'email screen explains storage and AI');
+  await app.locator('#email').fill('asha'); await tap('Continue');
+  ok(/Enter your email/.test(await text()), 'a mistyped email gets a friendly note');
+  await app.locator('#email').fill('asha@example.com'); await tap('Continue');
+  ok(/Can I reach you/.test(await text()), 'email goes straight on to notifications, no code');
   await tap('Allow notifications');
   await p.waitForTimeout(900);
   let t = await text();
@@ -78,7 +76,7 @@ const IPHONE = 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebK
   ok(/add Life OS to your Home Screen/i.test(t), 'in Safari it explains that push needs the Home Screen app');
   let d = await db();
   const prof = (d.profiles || [])[0] || {};
-  ok(prof.name === 'Asha' && prof.next_chat_n === 2 && !!prof.next_chat_at, 'profile saved with the chat 2 time: ' + prof.next_chat_at);
+  ok(prof.name === 'Asha' && prof.email === 'asha@example.com' && prof.next_chat_n === 2 && !!prof.next_chat_at, 'profile saved with the chat 2 time: ' + prof.next_chat_at);
   ok(Math.abs(Date.parse(prof.next_chat_at) - Date.now()) < 4 * 60000, 'test mode: chat time is about 3 minutes away');
 
   // 3. Chat comes due
@@ -159,7 +157,7 @@ const IPHONE = 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebK
 
   // 8. Menu: report a problem
   await app.getByRole('button', { name: 'Menu' }).click();
-  ok(/Signed in as asha@example.com/.test(await p.locator('#menu').innerText()), 'menu shows who is signed in');
+  ok(/Your email: asha@example.com/.test(await p.locator('#menu').innerText()) && !(await p.locator('#mSignOut').isVisible()), 'menu shows the email and has no sign out');
   await p.click('#mBug'); await p.fill('#bugText', 'The chat felt long'); await p.click('#bugSend');
   await p.waitForTimeout(300);
   d = await db();
@@ -167,17 +165,16 @@ const IPHONE = 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebK
   await p.click('#mClose');
   const snapshot = await p.evaluate(() => localStorage.getItem('__mockdb'));
 
-  // 9. Sign in on a new phone
-  const p2 = await newPage({ __mockdb: snapshot, lifeos_browser_ok: '1' });
-  const app2 = p2.locator('#app');
-  await p2.goto(base); await p2.waitForTimeout(400);
-  await app2.getByRole('button', { name: 'Already started? Sign in' }).click();
-  ok(/Welcome back/.test(await app2.innerText()), 'sign-in screen for people who already started');
-  await app2.locator('#email').fill('asha@example.com'); await app2.getByRole('button', { name: 'Send code' }).click(); await p2.waitForTimeout(100);
-  await app2.locator('#code').fill('123456'); await app2.getByRole('button', { name: 'Verify' }).click(); await p2.waitForTimeout(600);
-  const t2 = await app2.innerText();
-  if (!/Week 1 starts tomorrow/.test(t2)) { console.log('P2 SCREEN:', t2.slice(0, 300), p2.errs); }
-  ok(/Week 1 starts tomorrow/.test(t2), 'signing in on another phone restores the story');
+  // 9. Journey tracking
+  await p.waitForTimeout(2000);
+  d = await db();
+  const ev = (d.events || []).map((e) => e.name);
+  ok(ev.includes('landing') && ev.includes('setup_score') && ev.includes('setup_area') && ev.includes('email_given'), 'journey has the setup screens in order');
+  const area = (d.events || []).find((e) => e.name === 'setup_story');
+  ok(area && area.detail && area.detail.area === 'body', 'journey records the area picked');
+  const ans = (d.events || []).filter((e) => e.kind === 'chat_step' && e.detail && e.detail.answered);
+  ok(ans.length > 30 && ans.some((e) => e.detail.answered === 'c2_tried'), 'journey records each chat answer (' + ans.length + ')');
+  ok(ev.includes('menu_open') && ev.includes('bug_report'), 'journey records menu taps');
 
   // 10. Safety path on a fresh account
   const p3 = await newPage({ lifeos_browser_ok: '1', lifeos_test: '1' });
@@ -188,7 +185,7 @@ const IPHONE = 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebK
   await tap3('Mind and mood'); await tap3('Continue'); await tap3('I feel low most days'); await tap3('Continue'); await tap3('Okay, what’s next?');
   const s3 = (await app3.locator('button').allInnerTexts()).find((s) => /^(Today|Tomorrow), \d/.test(s));
   await tap3(s3); await tap3('Book it');
-  await app3.locator('#email').fill('dev@example.com'); await tap3('Send code'); await app3.locator('#code').fill('111111'); await tap3('Verify');
+  await app3.locator('#email').fill('dev@example.com'); await tap3('Continue');
   await tap3('Not now, email me instead'); await p3.waitForTimeout(400);
   if (await app3.getByRole('button', { name: 'Let’s talk now' }).count()) { await tap3('Let’s talk now'); } else { await tap3('Start this chat now (pilot testing)'); }
   await app3.getByRole('button', { name: 'Not great, honestly' }).click(); await tap3('Send');
@@ -210,7 +207,7 @@ const IPHONE = 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebK
   if (!/Hi. I’m glad you’re here/.test(fresh)) { console.log('AFTER DELETE:', fresh.slice(0, 200)); }
   ok(/Hi. I’m glad you’re here/.test(fresh), 'after deleting, the app starts fresh');
 
-  for (const pg of [p, p2, p3]) { ok(pg.errs.length === 0, 'no page errors' + (pg.errs.length ? ': ' + pg.errs.join(' | ') : '')); }
+  for (const pg of [p, p3]) { ok(pg.errs.length === 0, 'no page errors' + (pg.errs.length ? ': ' + pg.errs.join(' | ') : '')); }
   await p.setViewportSize({ width: 375, height: 667 });
   await browser.close(); server.close();
   console.log(fails ? fails + ' FAILED' : 'ALL PASSED');
