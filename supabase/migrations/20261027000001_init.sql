@@ -125,7 +125,7 @@ create table public.app_keys (
   name   text primary key,
   value  text not null
 );
-insert into public.app_keys (name, value) values ('cron_token', encode(gen_random_bytes(24), 'hex'));
+insert into public.app_keys (name, value) values ('cron_token', replace(gen_random_uuid()::text || gen_random_uuid()::text, '-', ''));
 
 -- Row-level security
 alter table public.profiles            enable row level security;

@@ -46,7 +46,7 @@ jobs:
       - name: Apply database changes
         run: |
           set +e
-          supabase db push --include-all --yes -p "$SUPABASE_DB_PASSWORD" > out.log 2>&1
+          supabase db push --linked --include-all --yes -p "$SUPABASE_DB_PASSWORD" > out.log 2>&1
           code=$?
           cat out.log
           if [ $code -ne 0 ]; then tail -n 25 out.log | sed 's/^/::error::/'; fi
