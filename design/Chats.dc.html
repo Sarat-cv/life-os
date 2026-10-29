@@ -1,0 +1,1157 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Life OS chats with the life buddy</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;1,6..72,400&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#3D5F4C}a:hover{color:#2F4A3B}
+</style>
+</helmet>
+<div style="position: relative; width: 390px; height: 844px; overflow: hidden; background: #FAF8F4; color: #1E1C19; font-family: Inter, system-ui, sans-serif">
+
+<sc-if value="{{ isOnb }}" hint-placeholder-val="{{ false }}">
+  <div style="position: absolute; top: 0; left: 0; width: 390px; height: 844px">
+    <dc-import name="App" on-done="{{ onOnbDone }}" hint-size="390px,844px"></dc-import>
+  </div>
+</sc-if>
+
+<sc-if value="{{ isLock }}" hint-placeholder-val="{{ true }}">
+  <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; box-sizing: border-box; display: flex; flex-direction: column; padding: 56px 20px 28px; background: #2A2723">
+    <p style="margin: 0; text-align: center; font-size: 15px; color: #D9D1C3">{{ lockDay }}</p>
+    <p style="margin: 4px 0 0; text-align: center; font-family: Newsreader, Georgia, serif; font-size: 84px; line-height: 1; color: #FAF8F4">{{ lockClock }}</p>
+    <div style="background: #FAF8F4; border-radius: 20px; padding: 14px 16px 16px; margin-top: 56px">
+      <div style="display: flex; align-items: center; gap: 8px">
+        <div style="width: 22px; height: 22px; border-radius: 6px; background: {{accent}}; display: flex; align-items: center; justify-content: center">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20v-8"></path><path d="M12 12c0-3.5 2.5-6 6-6 0 3.5-2.5 6-6 6z"></path><path d="M12 14c0-3-2-5-5-5 0 3 2 5 5 5z"></path></svg>
+        </div>
+        <span style="font-size: 13px; font-weight: 600; letter-spacing: 0.02em">LIFE OS</span>
+        <span style="margin-left: auto; font-size: 13px; color: #625C53">now</span>
+      </div>
+      <p style="margin: 8px 0 0; font-size: 15px; font-weight: 600">Still good to talk?</p>
+      <p style="margin: 2px 0 0; font-size: 15px; line-height: 1.45">{{ lockText }}</p>
+      <div style="display: flex; gap: 8px; margin-top: 14px">
+        <button type="button" onClick="{{ talkNow }}" style="flex: 1; height: 44px; border: 0; border-radius: 12px; background: {{accent}}; color: #FFFFFF; font-family: Inter, system-ui, sans-serif; font-size: 15px; font-weight: 600; cursor: pointer">Let’s talk now</button>
+        <button type="button" onClick="{{ reschedule }}" style="flex: 1; height: 44px; border: 1px solid #D9D1C3; border-radius: 12px; background: #FFFFFF; color: #1E1C19; font-family: Inter, system-ui, sans-serif; font-size: 15px; font-weight: 500; cursor: pointer">Reschedule</button>
+      </div>
+    </div>
+    <sc-if value="{{ hasLockNote }}" hint-placeholder-val="{{ false }}">
+      <p style="margin: 14px 0 0; text-align: center; font-size: 14px; color: #D9D1C3">{{ lockNote }}</p>
+    </sc-if>
+    <div style="flex-grow: 1"></div>
+    <sc-if value="{{ showPreview }}" hint-placeholder-val="{{ true }}">
+    <p style="margin: 0 0 10px; text-align: center; font-size: 13px; color: #B8AF9F">Preview: jump to a chat (fills in sample answers)</p>
+    <div style="display: flex; justify-content: center; gap: 8px">
+      <sc-for list="{{ jumps }}" as="j" hint-placeholder-count="4">
+        <button type="button" onClick="{{ j.pick }}" aria-label="{{ j.aria }}" style="width: 64px; height: 44px; border-radius: 12px; border: 1px solid {{j.bd}}; background: {{j.bg}}; color: {{j.fg}}; font-family: Inter, system-ui, sans-serif; font-size: 14px; font-weight: 500; cursor: pointer">{{ j.label }}</button>
+      </sc-for>
+    </div>
+    <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 10px">
+      <span style="font-size: 13px; color: #B8AF9F">Life score</span>
+      <button type="button" aria-label="Lower the score" onClick="{{ scoreDown }}" style="width: 44px; height: 40px; border-radius: 12px; border: 1px solid #6B645A; background: transparent; color: #FAF8F4; font-family: Inter, system-ui, sans-serif; font-size: 18px; cursor: pointer">−</button>
+      <span style="min-width: 48px; text-align: center; font-size: 15px; color: #FAF8F4">{{ scoreVal }}/10</span>
+      <button type="button" aria-label="Raise the score" onClick="{{ scoreUp }}" style="width: 44px; height: 40px; border-radius: 12px; border: 1px solid #6B645A; background: transparent; color: #FAF8F4; font-family: Inter, system-ui, sans-serif; font-size: 18px; cursor: pointer">+</button>
+    </div>
+    <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px; margin-top: 10px">
+      <button type="button" onClick="{{ cycleArea }}" style="height: 40px; padding: 0 12px; border-radius: 12px; border: 1px solid #6B645A; background: transparent; color: #FAF8F4; font-family: Inter, system-ui, sans-serif; font-size: 13px; font-weight: 500; cursor: pointer">{{ areaBtn }} ›</button>
+      <button type="button" onClick="{{ toOnb }}" style="height: 40px; padding: 0 12px; border-radius: 12px; border: 1px solid #6B645A; background: transparent; color: #FAF8F4; font-family: Inter, system-ui, sans-serif; font-size: 13px; font-weight: 500; cursor: pointer">Start from onboarding</button>
+      <sc-if value="{{ onbAvail }}" hint-placeholder-val="{{ false }}">
+        <button type="button" onClick="{{ useOnb }}" style="height: 40px; padding: 0 12px; border-radius: 12px; border: 0; background: #FAF8F4; color: #1E1C19; font-family: Inter, system-ui, sans-serif; font-size: 13px; font-weight: 600; cursor: pointer">Use my onboarding answers</button>
+      </sc-if>
+    </div>
+    <sc-if value="{{ hasOnbNote }}" hint-placeholder-val="{{ false }}">
+      <p style="margin: 6px 0 0; text-align: center; font-size: 12px; color: #B8AF9F">{{ onbNote }}</p>
+    </sc-if>
+    <p style="margin: 10px 0 6px; text-align: center; font-size: 13px; color: #B8AF9F">Path for chats 3 to 5</p>
+    <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px">
+      <sc-for list="{{ paths }}" as="pt" hint-placeholder-count="2">
+        <button type="button" onClick="{{ pt.pick }}" aria-pressed="{{ pt.pressed }}" style="height: 40px; padding: 0 12px; border-radius: 12px; border: 1px solid {{pt.bd}}; background: {{pt.bg}}; color: {{pt.fg}}; font-family: Inter, system-ui, sans-serif; font-size: 13px; font-weight: 500; cursor: pointer">{{ pt.label }}</button>
+      </sc-for>
+    </div>
+    <p style="margin: 10px 0 0; text-align: center; font-size: 12px; line-height: 1.4; color: #B8AF9F">Path D: in any chat, answer “Not great, honestly”.</p>
+    </sc-if>
+  </div>
+</sc-if>
+
+<sc-if value="{{ isHome }}" hint-placeholder-val="{{ false }}">
+  <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; box-sizing: border-box; display: flex; flex-direction: column; padding: 20px 24px 28px">
+    <div style="display: flex; align-items: center; height: 44px">
+      <p style="margin: 0; flex-grow: 1; font-size: 14px; color: #625C53">{{ homeDate }}</p>
+      <button type="button" aria-label="Menu" onClick="{{ openMenu }}" style="width: 44px; height: 44px; margin-right: -10px; border: 0; background: transparent; display: flex; align-items: center; justify-content: center; cursor: pointer">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1E1C19" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 12h.01"></path><path d="M12 12h.01"></path><path d="M19 12h.01"></path></svg>
+      </button>
+    </div>
+    <h1 style="margin: 6px 0 0; font-family: Newsreader, Georgia, serif; font-weight: 400; font-size: 34px; line-height: 1.12">{{ homeHello }}</h1>
+    <div style="background: #E3EBE4; border-radius: 20px; padding: 18px; margin-top: 24px">
+      <p style="margin: 0; font-size: 13px; font-weight: 500; color: #2F4A3B">{{ homeKicker }}</p>
+      <p style="margin: 6px 0 0; font-size: 20px; font-weight: 500; color: #1F3328">{{ homeWhen }}</p>
+      <p style="margin: 8px 0 0; font-size: 15px; line-height: 1.5; color: #2F4A3B">{{ homeText }}</p>
+      <sc-if value="{{ homeCanTalk }}" hint-placeholder-val="{{ false }}">
+        <div style="display: flex; gap: 8px; margin-top: 14px">
+          <button type="button" onClick="{{ talkNow }}" style="flex: 1; height: 46px; border: 0; border-radius: 12px; background: {{accent}}; color: #FFFFFF; font-family: Inter, system-ui, sans-serif; font-size: 15px; font-weight: 600; cursor: pointer">Let’s talk now</button>
+          <button type="button" onClick="{{ reschedule }}" style="flex: 1; height: 46px; border: 1px solid #C9D6CC; border-radius: 12px; background: #FFFFFF; color: #1E1C19; font-family: Inter, system-ui, sans-serif; font-size: 15px; font-weight: 500; cursor: pointer">Reschedule</button>
+        </div>
+      </sc-if>
+      <sc-if value="{{ homeWaiting }}" hint-placeholder-val="{{ false }}">
+        <button type="button" onClick="{{ reschedule }}" style="margin-top: 12px; height: 40px; padding: 0 14px; border: 1px solid #C9D6CC; border-radius: 12px; background: #FFFFFF; color: #1E1C19; font-family: Inter, system-ui, sans-serif; font-size: 14px; font-weight: 500; cursor: pointer">Change the time</button>
+      </sc-if>
+    </div>
+    <sc-if value="{{ hasLockNote }}" hint-placeholder-val="{{ false }}">
+      <p style="margin: 12px 0 0; font-size: 14px; color: #625C53">{{ lockNote }}</p>
+    </sc-if>
+    <sc-if value="{{ homePushOff }}" hint-placeholder-val="{{ false }}">
+      <div style="background: #FFFFFF; border: 1px solid #E3DCD0; border-radius: 16px; padding: 14px 16px; margin-top: 12px">
+        <p style="margin: 0; font-size: 14px; line-height: 1.5; color: #3F3A33">{{ pushOffText }}</p>
+        <sc-if value="{{ canEnablePush }}" hint-placeholder-val="{{ false }}">
+          <button type="button" onClick="{{ enablePush }}" style="margin-top: 10px; height: 40px; padding: 0 14px; border: 0; border-radius: 12px; background: {{accent}}; color: #FFFFFF; font-family: Inter, system-ui, sans-serif; font-size: 14px; font-weight: 600; cursor: pointer">Turn on notifications</button>
+        </sc-if>
+      </div>
+    </sc-if>
+    <p style="margin: 20px 0 0; font-size: 15px; line-height: 1.5; color: #625C53; text-align: center">{{ homeRest }}</p>
+    <div style="flex-grow: 1"></div>
+    <sc-if value="{{ homeEarly }}" hint-placeholder-val="{{ false }}">
+      <button type="button" onClick="{{ talkNow }}" style="height: 44px; border: 0; background: transparent; color: #625C53; font-family: Inter, system-ui, sans-serif; font-size: 14px; text-decoration: underline; cursor: pointer">Start this chat now (pilot testing)</button>
+    </sc-if>
+  </div>
+</sc-if>
+
+<sc-if value="{{ isResched }}" hint-placeholder-val="{{ false }}">
+  <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; box-sizing: border-box; display: flex; flex-direction: column; padding: 16px 24px 28px">
+    <div style="display: flex; align-items: center; height: 44px">
+      <button type="button" aria-label="Back" onClick="{{ backToLock }}" style="width: 44px; height: 44px; margin-left: -10px; border: 0; background: transparent; display: flex; align-items: center; justify-content: center; cursor: pointer">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1E1C19" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"></path></svg>
+      </button>
+    </div>
+    <h1 style="margin: 24px 0 0; font-family: Newsreader, Georgia, serif; font-weight: 400; font-size: 32px; line-height: 1.15">No problem. When suits you better?</h1>
+    <p style="margin: 12px 0 0; font-size: 16px; line-height: 1.5; color: #625C53">I’ll send a new reminder then. No guilt, life happens.</p>
+    <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 28px">
+      <sc-for list="{{ reschedTimes }}" as="t" hint-placeholder-count="4">
+        <button type="button" onClick="{{ t.pick }}" style="height: 54px; padding: 0 16px; text-align: left; border-radius: 14px; border: 1px solid #E3DCD0; background: #FFFFFF; color: #1E1C19; font-family: Inter, system-ui, sans-serif; font-size: 16px; font-weight: 500; cursor: pointer">{{ t.label }}</button>
+      </sc-for>
+    </div>
+  </div>
+</sc-if>
+
+<sc-if value="{{ isChat }}" hint-placeholder-val="{{ false }}">
+  <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; flex-direction: column">
+    <div style="display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-bottom: 1px solid #E3DCD0; background: #FAF8F4">
+      <div style="width: 36px; height: 36px; border-radius: 50%; background: {{accent}}; display: flex; align-items: center; justify-content: center; flex-shrink: 0">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20v-8"></path><path d="M12 12c0-3.5 2.5-6 6-6 0 3.5-2.5 6-6 6z"></path><path d="M12 14c0-3-2-5-5-5 0 3 2 5 5 5z"></path></svg>
+      </div>
+      <div style="flex-grow: 1; min-width: 0">
+        <p style="margin: 0; font-size: 16px; font-weight: 600">Your life buddy</p>
+        <p style="margin: 1px 0 0; font-size: 12px; color: #625C53">{{ chatLabel }}</p>
+      </div>
+      <sc-if value="{{ showTooMuch }}" hint-placeholder-val="{{ false }}">
+        <button type="button" onClick="{{ tooMuch }}" style="height: 36px; padding: 0 12px; border: 1px solid #D9D1C3; border-radius: 999px; background: #FFFFFF; color: #3F3A33; font-family: Inter, system-ui, sans-serif; font-size: 12px; font-weight: 500; cursor: pointer">This is getting a lot</button>
+      </sc-if>
+    </div>
+
+    <sc-if value="{{ hasPinned }}" hint-placeholder-val="{{ false }}">
+      <div style="margin: 10px 12px 0; background: #FFFFFF; border: 1px solid #E3DCD0; border-radius: 14px; padding: 10px 14px">
+        <p style="margin: 0; font-size: 12px; font-weight: 600; color: #625C53">What we know so far</p>
+        <sc-for list="{{ pinned }}" as="p" hint-placeholder-count="3">
+          <p style="margin: 3px 0 0; font-size: 12px; line-height: 1.4; color: #3F3A33">{{ p.t }}</p>
+        </sc-for>
+      </div>
+    </sc-if>
+
+    <div style="flex: 1 1 auto; min-height: 0; overflow-y: auto; display: flex; flex-direction: column-reverse; padding: 12px 12px 8px">
+      <div style="display: flex; flex-direction: column; gap: 8px">
+        <sc-for list="{{ msgs }}" as="m" hint-placeholder-count="3">
+          <sc-if value="{{ m.isBot }}" hint-placeholder-val="{{ true }}">
+            <p style="margin: 0; align-self: flex-start; max-width: 300px; background: #F1ECE3; border-radius: 18px 18px 18px 6px; padding: 11px 14px; font-size: 15px; line-height: 1.45">{{ m.t }}</p>
+          </sc-if>
+          <sc-if value="{{ m.isUser }}" hint-placeholder-val="{{ false }}">
+            <p style="margin: 0; align-self: flex-end; max-width: 280px; background: {{accent}}; color: #FFFFFF; border-radius: 18px 18px 6px 18px; padding: 11px 14px; font-size: 15px; line-height: 1.45">{{ m.t }}</p>
+          </sc-if>
+          <sc-if value="{{ m.isNote }}" hint-placeholder-val="{{ false }}">
+            <p style="margin: 2px 8px; align-self: center; text-align: center; font-size: 13px; line-height: 1.45; color: #625C53; font-style: italic">{{ m.t }}</p>
+          </sc-if>
+          <sc-if value="{{ m.isQuote }}" hint-placeholder-val="{{ false }}">
+            <div style="align-self: stretch; margin: 4px 0; background: #FFFFFF; border: 1px solid #E3DCD0; border-radius: 16px; padding: 16px 18px">
+              <p style="margin: 0; font-family: Newsreader, Georgia, serif; font-style: italic; font-size: 20px; line-height: 1.35">“{{ m.t }}”</p>
+              <p style="margin: 8px 0 0; font-size: 12px; color: #625C53">{{ m.by }}</p>
+            </div>
+          </sc-if>
+          <sc-if value="{{ m.isStory }}" hint-placeholder-val="{{ false }}">
+            <div style="align-self: stretch; margin: 4px 0; background: #FFFFFF; border: 1px solid #E3DCD0; border-radius: 16px; padding: 14px 16px">
+              <p style="margin: 0 0 6px; font-size: 13px; font-weight: 600; color: #625C53">{{ m.title }}</p>
+              <p style="margin: 0; font-family: Newsreader, Georgia, serif; font-size: 18px; line-height: 1.5">{{ m.t }}</p>
+            </div>
+          </sc-if>
+          <sc-if value="{{ m.isCard }}" hint-placeholder-val="{{ false }}">
+            <div style="align-self: stretch; margin: 4px 0; background: #FFFFFF; border: 1px solid #E3DCD0; border-radius: 16px; padding: 14px 16px">
+              <p style="margin: 0 0 6px; font-size: 13px; font-weight: 600; color: #625C53">{{ m.title }}</p>
+              <sc-for list="{{ m.rows }}" as="r" hint-placeholder-count="3">
+                <div style="display: flex; gap: 8px; align-items: flex-start; margin-top: 5px">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2F4A3B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0; margin-top: 3px"><path d="M5 12l5 5L20 7"></path></svg>
+                  <span style="font-size: 14px; line-height: 1.45">{{ r.t }}</span>
+                </div>
+              </sc-for>
+            </div>
+          </sc-if>
+          <sc-if value="{{ m.isStatus }}" hint-placeholder-val="{{ false }}">
+            <div style="align-self: stretch; margin: 8px 0 4px; background: #E3EBE4; border: 1px dashed #9DB8A4; border-radius: 16px; padding: 14px 16px">
+              <p style="margin: 0; font-size: 11px; font-weight: 600; letter-spacing: 0.04em; color: #2F4A3B">BEHIND THE SCENES · NOT SHOWN TO THE USER</p>
+              <p style="margin: 4px 0 6px; font-size: 15px; font-weight: 600; color: #1F3328">{{ m.title }}</p>
+              <sc-for list="{{ m.rows }}" as="r" hint-placeholder-count="4">
+                <p style="margin: 3px 0 0; font-size: 13px; line-height: 1.45; color: #2F4A3B">{{ r.t }}</p>
+              </sc-for>
+            </div>
+          </sc-if>
+        </sc-for>
+      </div>
+    </div>
+
+    <div style="border-top: 1px solid #E3DCD0; background: #FFFFFF; padding: 12px 12px 24px">
+      <sc-if value="{{ showCall }}" hint-placeholder-val="{{ false }}">
+        <div style="display: flex; gap: 8px; margin-bottom: 10px">
+          <a href="tel:14416" style="flex: 1; height: 44px; border-radius: 12px; background: #2F4A3B; color: #FFFFFF; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; text-decoration: none">Call Tele-MANAS 14416</a>
+          <a href="tel:112" style="width: 110px; height: 44px; border-radius: 12px; border: 1px solid #D9D1C3; color: #1E1C19; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; text-decoration: none">Call 112</a>
+        </div>
+      </sc-if>
+      <sc-if value="{{ askChips }}" hint-placeholder-val="{{ false }}">
+        <p style="margin: 0 0 8px; font-size: 12px; color: #625C53">{{ chipHint }}</p>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px">
+          <sc-for list="{{ chips }}" as="c" hint-placeholder-count="4">
+            <button type="button" aria-pressed="{{ c.pressed }}" onClick="{{ c.pick }}" style="min-height: 40px; padding: 8px 12px; border-radius: 999px; border: 1px solid {{c.bd}}; background: {{c.bg}}; color: {{c.fg}}; font-family: Inter, system-ui, sans-serif; font-size: 14px; font-weight: 500; line-height: 1.3; text-align: left; cursor: pointer">{{ c.label }}</button>
+          </sc-for>
+        </div>
+        <div style="display: flex; gap: 8px; margin-top: 10px">
+          <label for="own" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Your own words</label>
+          <input id="own" type="text" placeholder="Or write it in your own words" value="{{ own }}" onChange="{{ onOwn }}" style="flex: 1; min-width: 0; height: 44px; box-sizing: border-box; border: 1px solid #D9D1C3; border-radius: 12px; background: #FAF8F4; padding: 0 12px; font-family: Inter, system-ui, sans-serif; font-size: 15px; color: #1E1C19">
+          <button type="button" onClick="{{ send }}" style="height: 44px; padding: 0 16px; border: 0; border-radius: 12px; background: {{accent}}; color: #FFFFFF; font-family: Inter, system-ui, sans-serif; font-size: 15px; font-weight: 600; cursor: pointer">Send</button>
+        </div>
+      </sc-if>
+      <sc-if value="{{ askText }}" hint-placeholder-val="{{ false }}">
+        <div style="display: flex; gap: 8px">
+          <label for="txt" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Your answer</label>
+          <input id="txt" type="text" placeholder="Write it in your own words" value="{{ own }}" onChange="{{ onOwn }}" style="flex: 1; min-width: 0; height: 44px; box-sizing: border-box; border: 1px solid #D9D1C3; border-radius: 12px; background: #FAF8F4; padding: 0 12px; font-family: Inter, system-ui, sans-serif; font-size: 15px; color: #1E1C19">
+          <button type="button" onClick="{{ send }}" style="height: 44px; padding: 0 16px; border: 0; border-radius: 12px; background: {{accent}}; color: #FFFFFF; font-family: Inter, system-ui, sans-serif; font-size: 15px; font-weight: 600; cursor: pointer">Send</button>
+        </div>
+      </sc-if>
+      <sc-if value="{{ askButtons }}" hint-placeholder-val="{{ false }}">
+        <div style="display: flex; flex-direction: column; gap: 8px">
+          <sc-for list="{{ buttons }}" as="b" hint-placeholder-count="2">
+            <button type="button" onClick="{{ b.pick }}" style="height: 48px; border-radius: 14px; border: 1px solid {{b.bd}}; background: {{b.bg}}; color: {{b.fg}}; font-family: Inter, system-ui, sans-serif; font-size: 15px; font-weight: 600; cursor: pointer">{{ b.label }}</button>
+          </sc-for>
+        </div>
+      </sc-if>
+      <sc-if value="{{ isEnd }}" hint-placeholder-val="{{ false }}">
+        <p style="margin: 0 0 8px; font-size: 12px; line-height: 1.4; color: #625C53; text-align: center">{{ saveNote }}</p>
+        <sc-if value="{{ showRecord }}" hint-placeholder-val="{{ false }}">
+          <label for="rec" style="display: block; margin: 0 0 4px; font-size: 12px; font-weight: 600; color: #625C53">Test record</label>
+          <textarea id="rec" readonly="readonly" value="{{ recordText }}" style="width: 100%; box-sizing: border-box; height: 96px; border: 1px solid #D9D1C3; border-radius: 10px; background: #FAF8F4; padding: 8px 10px; font-family: Inter, system-ui, sans-serif; font-size: 11px; line-height: 1.4; color: #3F3A33; resize: none"></textarea>
+          <button type="button" onClick="{{ copyRecord }}" style="width: 100%; height: 40px; margin: 6px 0 8px; border: 1px solid #D9D1C3; border-radius: 12px; background: #FFFFFF; color: #1E1C19; font-family: Inter, system-ui, sans-serif; font-size: 14px; font-weight: 500; cursor: pointer">{{ copyLabel }}</button>
+        </sc-if>
+        <button type="button" onClick="{{ endAction }}" style="width: 100%; height: 50px; border: 0; border-radius: 14px; background: {{accent}}; color: #FFFFFF; font-family: Inter, system-ui, sans-serif; font-size: 15px; font-weight: 600; cursor: pointer">{{ endCta }}</button>
+      </sc-if>
+      <sc-if value="{{ hasErr }}" hint-placeholder-val="{{ false }}">
+        <p role="alert" style="margin: 8px 0 0; color: #A23B2A; font-size: 13px">{{ err }}</p>
+      </sc-if>
+    </div>
+  </div>
+</sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#3D5F4C","options":["#3D5F4C","#7A5434","#35506E","#1E1C19"]},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    var pv = { score: 2, path: 'A', area: 'dir' };
+    var onb = this.readOnb();
+    if (onb) { pv = Object.assign(pv, onb); }
+    this.state = Object.assign(this.fresh(2, this.sample(2, pv)), { pv: pv, phase: 'onb' });
+  }
+  fresh(conv, a) {
+    return { conv: conv, phase: 'lock', step: null, msgs: [], sel: [], own: '', a: a, err: '', lockNote: '' };
+  }
+  list(x) { return Array.isArray(x) ? x : (x ? [x] : []); }
+  lower(t) { if (!t) { return ''; } if (/^I[ ’']/.test(t)) { return t; } return t.charAt(0).toLowerCase() + t.slice(1); }
+  joinNice(arr) {
+    var self = this;
+    var xs = arr.map(function (t) { return self.lower(t); });
+    if (xs.length <= 1) { return xs[0] || ''; }
+    return xs.slice(0, -1).join(', ') + ' and ' + xs[xs.length - 1];
+  }
+  triedList(a) { return this.list(a.c2_tried).filter(function (t) { return t !== 'Not yet, honestly'; }); }
+  isIntro(a) {
+    if (a.c2_k3 === 'Time with people' || a.c2_k1 === 'Go out with friends' || a.c3_k3 === 'With someone') { return false; }
+    return true;
+  }
+  stopReasons(a) {
+    var out = [];
+    Object.keys(a).forEach(function (k) {
+      if (k.indexOf('c3_q') === 0) {
+        (Array.isArray(a[k]) ? a[k] : [a[k]]).forEach(function (v) { if (out.indexOf(v) === -1) { out.push(v); } });
+      }
+    });
+    return out;
+  }
+  isBurst(a) { return a.c4_how === 'Lots in one go when I felt ready' || a.c4_how === 'Only when something pushed me'; }
+  lockKey(conv) { return conv === 2 ? 'onb_time' : 'c' + (conv - 1) + '_book'; }
+  times(a) {
+    a = a || {};
+    if (!a.b_work) { return ['Tomorrow, 8:00 am', 'Tomorrow, 7:30 pm', 'Day after, 8:00 am', 'Day after, 7:30 pm']; }
+    var after = { 'Daytime, roughly 9 to 6': '7:00 pm', 'Early, roughly 7 to 4': '5:30 pm', 'Evenings or nights': '2:00 pm' }[a.b_work] || '6:00 pm';
+    var tag = { 'Daytime, roughly 9 to 6': 'after work', 'Early, roughly 7 to 4': 'after work', 'Evenings or nights': 'before your shift' }[a.b_work] || 'evening';
+    var bed = { 'Before 10 pm': '9:00 pm', '10 to 11 pm': '9:30 pm', '11 pm to midnight': '10:30 pm', 'After midnight': '11:30 pm' }[a.b_sleep] || '9:30 pm';
+    return ['Tomorrow, ' + after + ' (' + tag + ')', 'Tomorrow, ' + bed + ' (before bed)', 'Day after, ' + after + ' (' + tag + ')', 'Day after, ' + bed + ' (before bed)'];
+  }
+  pron(a, t) {
+    if (a.b_gender === 'Man') { return t; }
+    if (a.b_gender === 'Woman') { return t.replace(/\bhe’s\b/g, 'she’s').replace(/\bhe\b/g, 'she').replace(/\bhis\b/g, 'her').replace(/\bhim\b/g, 'her'); }
+    return t.replace(/\bhe’s\b/g, 'they’re').replace(/\bhe\b/g, 'they').replace(/\bhis\b/g, 'their').replace(/\bhim\b/g, 'them');
+  }
+  quoteFor(a) {
+    var w = this.list(a.c2_way)[0] || '';
+    if (w === 'It slowly fizzled out' || w === 'No motivation') { return { k: 'quote', t: 'You do not rise to the level of your goals. You fall to the level of your systems.', by: 'James Clear, Atomic Habits' }; }
+    if (w === 'Dropped off my priorities') { return { k: 'quote', t: 'Never miss twice.', by: 'James Clear, Atomic Habits' }; }
+    if (w === 'Didn’t know where to start') { return { k: 'quote', t: 'Start where you are. Use what you have. Do what you can.', by: 'Arthur Ashe' }; }
+    if (w === 'Scared it won’t work') { return { k: 'quote', t: 'What stands in the way becomes the way.', by: 'Marcus Aurelius, Meditations' }; }
+    return { k: 'quote', t: 'Fall seven times, stand up eight.', by: 'Japanese proverb' };
+  }
+  areas() {
+    if (this._areas) { return this._areas; }
+    var T = function (o, did, doing, ack) { return { o: o, did: did, doing: doing, ack: ack }; };
+    this._areas = {
+      mind: {
+        label: 'Mind and mood', phrase: 'your mind and mood',
+        s4: ['I feel low most days', 'I worry or overthink a lot', 'I feel numb or flat', 'I’m stressed and stretched thin', 'I feel alone with it'],
+        day: ['It’s hard to get out of bed', 'I can’t switch my mind off', 'I avoid people', 'I snap at people I care about'],
+        tried: [T('Talked to someone close', 'talked to someone close', 'talking to people close to you', 'That takes courage. Good on you.'), T('Saw a counsellor or therapist', 'saw a counsellor', 'seeing a counsellor', 'That’s a real step. I’m glad you reached out.'), T('Meditation or journaling', 'tried meditation or journaling', 'meditating or journaling', 'Good, you tried looking after your mind. That counts.'), T('Exercise or walks', 'tried exercise or walks', 'exercising or walking', 'Good, moving helps more than people think. That counts.')],
+        first: ['Tell one person how I’ve been feeling', 'Take a short walk outside', 'Write down what’s on my mind', 'I honestly don’t know'],
+        stayIn: ['Take {m} minutes of slow breathing after waking up', 'Write one line about your day before bed', 'Put on one song that lifts you, every evening'],
+        goOut: ['Text one friend a simple “hey, how are you?”', 'Take a {m}-minute walk outside', 'Sit somewhere with people around for {m} minutes, like a café or a park'],
+        care: ''
+      },
+      body: {
+        label: 'Body and health', phrase: 'your body and health',
+        s4: ['I’m unhappy with my physical shape', 'I have no energy to do anything', 'I have no control over my diet', 'I have a health issue', 'I start, then I stop'],
+        day: ['I get out of breath easily', 'I feel aches and stiffness', 'I eat on the run', 'I feel bad about how I look'],
+        tried: [T('Joined a gym', 'joined a gym', 'going to the gym', 'Oh good, you actually took a step. Getting yourself to a gym takes real effort.'), T('Walking or running', 'tried walking or running', 'walking or running', 'Good, you got moving. That counts.'), T('A diet', 'tried a diet', 'the diet', 'Good, you tried to change how you eat. That takes effort.'), T('Saw a doctor or physio', 'saw a doctor or physio', 'the doctor’s or physio’s plan', 'Good, getting it checked was the right call.')],
+        first: ['A short walk', 'Some light stretching', 'Drinking more water', 'I honestly don’t know'],
+        stayIn: ['Do {m} minutes of gentle stretching after your morning tea', 'Drink a glass of water before each meal', 'Do 10 slow squats while the kettle boils'],
+        goOut: ['Take a {m}-minute walk after lunch', 'Walk with a friend or family member once today', 'Take the stairs instead of the lift once a day'],
+        care: 'Go gently. If anything hurts, stop and check with a doctor.'
+      },
+      work: {
+        label: 'Work and career', phrase: 'work and career',
+        s4: ['I’m not growing in my role', 'I don’t know what’s next', 'My job search isn’t working', 'I’m burnt out', 'I’m not paid what I’m worth'],
+        day: ['I dread the start of the week', 'I do the same work with no growth', 'I compare myself with peers', 'I scroll job sites but don’t apply'],
+        tried: [T('Applied for jobs', 'applied for jobs', 'applying for jobs', 'Oh good, you actually took a step. Applying for jobs takes real effort, so that counts.'), T('Took a course', 'took a course', 'the course', 'Good, you invested in yourself. That counts.'), T('Asked for a raise or new role', 'asked for a raise or a new role', 'pushing for a raise or a new role', 'That takes courage. Good on you.'), T('Talked to a mentor', 'talked to a mentor', 'talking to your mentor', 'Good, asking for help is a strength.')],
+        first: ['Look at what jobs are out there', 'Update my CV', 'Talk to someone in a field I like', 'I honestly don’t know'],
+        stayIn: ['Save 2 job posts a day that genuinely interest you, without applying yet', 'Update one line of your CV each day', 'Spend {m} minutes learning one skill you’d like to grow'],
+        goOut: ['Message one former colleague to catch up', 'Ask one person how they got their role', 'Save 2 job posts a day that genuinely interest you, without applying yet'],
+        care: ''
+      },
+      money: {
+        label: 'Money', phrase: 'money',
+        s4: ['Debt or loans', 'No savings to fall back on', 'Spending gets away from me', 'My income isn’t enough', 'Money stress at home'],
+        day: ['I check my balance with dread', 'I run out before the month ends', 'We argue about money at home', 'I say no to plans to save money'],
+        tried: [T('Made a budget', 'made a budget', 'the budget', 'Good, a budget is a real step. That counts.'), T('Cut back on spending', 'cut back on spending', 'cutting back', 'Good, that takes discipline. That counts.'), T('Looked for extra income', 'looked for extra income', 'looking for extra income', 'Good, you went looking for a way out. That counts.'), T('Spoke to someone about debt', 'spoke to someone about your debt', 'the plan for your debt', 'That takes courage. Good on you.')],
+        first: ['Write down where my money goes', 'Check my balance once a day', 'Save a tiny amount', 'I honestly don’t know'],
+        stayIn: ['Write down every spend for one day', 'Check your balance once a day, calmly, at the same time', 'Move ₹100 to savings this week'],
+        goOut: ['Ask one person you trust how they manage money', 'Ask one person how they earn something on the side', 'Write down every spend for one day'],
+        care: 'This is a small habit, not financial advice.'
+      },
+      rel: {
+        label: 'Relationships', phrase: 'your relationships',
+        s4: ['Conflict with family', 'Things with my partner', 'I feel lonely', 'I’ve lost touch with friends', 'It’s hard to open up'],
+        day: ['I feel alone even around people', 'The same argument keeps coming back', 'I don’t text people back', 'Weekends feel lonely'],
+        tried: [T('Had a talk about it', 'had a talk about it', 'talking it through', 'That takes courage. Good on you.'), T('Gave it space', 'gave it space', 'giving it space', 'That makes sense. Space can help.'), T('Reached out to someone', 'reached out to someone', 'reaching out', 'Good, reaching out is hard. That counts.'), T('Tried counselling', 'tried counselling', 'counselling', 'That’s a real step. I’m glad you did.')],
+        first: ['Send one message to someone I miss', 'Write down what I want to say', 'Spend time with someone without my phone', 'I honestly don’t know'],
+        stayIn: ['Write down what you’d want to say, without sending it', 'Send one short message to someone you miss', 'Reply to one message you’ve been putting off'],
+        goOut: ['Spend {m} phone-free minutes with someone close', 'Join one group or class that meets regularly', 'Call someone instead of texting, once this week'],
+        care: ''
+      },
+      dir: {
+        label: 'Direction and purpose', phrase: 'direction and purpose',
+        s4: ['I don’t know what I want', 'I feel behind others', 'Too many options, no clarity', 'I’ve lost my sense of purpose', 'Every day feels the same'],
+        day: ['Days blur into each other', 'I keep seeing friends settle down', 'I don’t know what to say when asked “what’s next?”', 'I start things, then drop them'],
+        tried: [T('Took a course', 'took a course', 'the course', 'Good, you invested in yourself. That counts.'), T('Tried new hobbies', 'tried new hobbies', 'trying new hobbies', 'Good, you went looking. That counts.'), T('Read or watched self-help', 'read or watched self-help', 'reading or watching self-help', 'Good, you went looking for answers. That counts.'), T('Talked to someone', 'talked to someone about it', 'talking it through with someone', 'That takes courage. Good on you.')],
+        first: ['Write down what I enjoy', 'Try one new thing', 'Talk to someone whose life I admire', 'I honestly don’t know'],
+        stayIn: ['Spend {m} minutes writing down 3 things you enjoyed this week, and why', 'Read one short story of someone who changed direction later in life', 'Write one sentence a day about what made today feel worthwhile'],
+        goOut: ['Ask one friend what they think you’re good at', 'Try one new thing for {m} minutes this week', 'Message one person whose path you admire and ask how they found it'],
+        care: ''
+      },
+      sleep: {
+        label: 'Sleep and energy', phrase: 'your sleep and energy',
+        s4: ['I can’t fall asleep', 'I wake up tired', 'My phone keeps me up', 'My schedule is all over the place', 'I’m tired all day'],
+        day: ['I lie awake for hours', 'I wake up in the night', 'I need caffeine to get going', 'I crash in the afternoon'],
+        tried: [T('A fixed bedtime', 'tried a fixed bedtime', 'the fixed bedtime', 'Good, that’s one of the best places to start.'), T('Less phone at night', 'tried less phone at night', 'keeping the phone away at night', 'Good, that’s a hard one. That counts.'), T('Cut caffeine', 'cut caffeine', 'cutting caffeine', 'Good, that takes willpower. That counts.'), T('Saw a doctor', 'saw a doctor', 'the doctor’s advice', 'Good, getting it checked was the right call.')],
+        first: ['Put my phone away earlier', 'Go to bed at the same time', 'Get some morning light', 'I honestly don’t know'],
+        stayIn: ['Put your phone across the room at bedtime', 'No screens for 15 minutes before bed', 'Wake up at the same time every day, even weekends'],
+        goOut: ['Get 5 minutes of sunlight outside in the morning', 'Take a short walk after lunch instead of a nap', 'Wake up at the same time every day, even weekends'],
+        care: 'If poor sleep has gone on a long time, it’s worth seeing a doctor too.'
+      },
+      other: {
+        label: 'Something else', phrase: 'what’s been on your mind',
+        s4: ['It’s been building for a while', 'Something changed recently', 'It’s hard to explain'],
+        day: ['It’s on my mind most of the day', 'It affects my mood', 'It affects my sleep', 'It affects how I treat people'],
+        tried: [T('Talked to someone', 'talked to someone about it', 'talking it through', 'That takes courage. Good on you.'), T('Tried to change a habit', 'tried to change a habit', 'changing that habit', 'Good, you tried to do something about it. That counts.'), T('Read up on it', 'read up on it', 'reading up on it', 'Good, you went looking for answers. That counts.'), T('Tried to ignore it', 'tried to ignore it', 'ignoring it', 'That’s honest. Most of us try that first.')],
+        first: ['Talk to someone about it', 'Write it down', 'Take one small action', 'I honestly don’t know'],
+        stayIn: ['Spend {m} minutes writing down what’s on your mind', 'Write down one small thing you could do about it, each day', 'Take 2 minutes of slow breathing when it comes up'],
+        goOut: ['Tell one person you trust about it', 'Take a {m}-minute walk when it’s on your mind', 'Ask one person who’s been through something similar what helped'],
+        care: ''
+      }
+    };
+    return this._areas;
+  }
+  ar(a) { return this.areas()[a.area] || this.areas().dir; }
+  areaLabel(a) { return a.area === 'other' && a.areaOther ? a.areaOther : this.ar(a).label; }
+  areaPhrase(a) { return a.area === 'other' && a.areaOther ? this.lower(a.areaOther) : this.ar(a).phrase; }
+  you(t) {
+    if (!t) { return ''; }
+    var x = t.replace(/\bI’m\b/g, 'you’re').replace(/\bI’ve\b/g, 'you’ve').replace(/\bI’d\b/g, 'you’d').replace(/\bI\b/g, 'you').replace(/\bmy\b/g, 'your').replace(/\bMy\b/g, 'Your').replace(/\bme\b/g, 'you').replace(/\bWe\b/g, 'you').replace(/\bwe\b/g, 'you');
+    return x.charAt(0).toLowerCase() + x.slice(1);
+  }
+  youJ(x) { var self = this; return this.joinNice(this.list(x).map(function (t) { return self.you(t); })); }
+  tdef(a, t) {
+    var list = this.ar(a).tried;
+    for (var i = 0; i < list.length; i++) { if (list[i].o === t) { return list[i]; } }
+    return null;
+  }
+  hardest(a) { return a.c2_one || this.list(a.s4)[0] || ''; }
+  mostly(a) { var h = this.you(this.hardest(a)); return h ? (/^you/.test(h) ? 'that ' + h : h) : ''; }
+  stepsFor(a) {
+    var m = a.c4_energy === '5 minutes' ? '5' : '10';
+    if (this.pathOf(a) === 'C') {
+      return [
+        'Keep doing it, and write one line each day about what you did, so you can see progress',
+        'Ask one person for honest feedback on how you’re going about it',
+        'Do a little less of it, but at the same time every day'
+      ];
+    }
+    var list = this.isIntro(a) ? this.ar(a).stayIn : this.ar(a).goOut;
+    return list.map(function (t) { return t.replace(/\{m\}/g, m); });
+  }
+  phrase(label) {
+    var parts = (label || 'Tomorrow, 7:30 pm').split(', ');
+    var d = parts[0].toLowerCase();
+    if (d === 'day after') { d = 'the day after tomorrow'; }
+    return d + ' at ' + (parts[1] || '7:30 pm').replace(/\s*\(.*\)/, '');
+  }
+  firstMet(a) {
+    var day = ((a.onb_time || 'Today, 7:30 pm').split(', ')[0]);
+    if (day === 'Tomorrow') { return 'Yesterday'; }
+    if (day === 'Day after') { return 'Two days ago'; }
+    return 'Earlier today';
+  }
+  sc(a) { return a.score || 2; }
+  tg(a) { return Math.min(this.sc(a) + 1, 10); }
+  still() { return 'I’m still at it, but stuck'; }
+  pathOf(a) {
+    if (!this.triedList(a).length) { return 'B'; }
+    return this.list(a.c2_way).indexOf(this.still()) !== -1 ? 'C' : 'A';
+  }
+  pathName(p) { return { A: 'A, tried and stopped', B: 'B, hasn’t started yet', C: 'C, still at it but stuck' }[p]; }
+  isD(conv, a) { return !!a['c' + conv + '_dsafe']; }
+  triedPhrase(t, a) { var d = this.tdef(a, t); return d ? d.did : this.you(t); }
+  doingPhrase(t, a) { var d = this.tdef(a, t); return d ? d.doing : this.you(t); }
+  wayPhrase(w) {
+    var map = {
+      'It slowly fizzled out': 'it slowly fizzled out', 'Dropped off my priorities': 'it dropped off your priorities', 'Got bored': 'you got bored of it', 'No motivation': 'the motivation wasn’t there', 'Didn’t hear back': 'you didn’t hear back',
+      'Didn’t know where to start': 'you weren’t sure where to start', 'Scared it won’t work': 'you were scared it wouldn’t work', 'No time': 'time was short', 'No energy': 'your energy was low'
+    };
+    map[this.still()] = 'you’re still at it, but feel stuck';
+    return map[w] || ('“' + w + '”');
+  }
+  stopAck(v) {
+    var map = {
+      'It fizzled out': 'That makes sense. Most things fizzle out when they run on motivation alone.',
+      'Dropped off my priorities': 'Life gets busy, that’s real.',
+      'Got bored': 'Fair. When something feels repetitive, it’s hard to keep going.',
+      'No motivation': 'Thanks for being honest. Motivation comes and goes for everyone.',
+      'Didn’t see results': 'That’s discouraging, no doubt.'
+    };
+    return map[this.list(v)[0]] || 'Got it, thank you.';
+  }
+  recap(conv, a) {
+    var self = this;
+    var J = function (x) { return self.joinNice(self.list(x)); };
+    var low = function (t) { return self.lower(t); };
+    var path = this.pathOf(a);
+    var tried = this.triedList(a);
+    var ways = this.list(a.c2_way).filter(function (w) { return w !== self.still(); }).map(function (w) { return self.wayPhrase(w); });
+    var did = this.joinNice(tried.map(function (t) { return self.triedPhrase(t, a); }));
+    if (conv === 3) {
+      var hd = this.you(this.hardest(a));
+      var s = 'that the area affecting you most is ' + this.areaPhrase(a) + (hd ? ', mostly ' + this.mostly(a) : '') + '. ';
+      if (path === 'A') { s += 'You ' + did + ', but ' + (ways[0] || 'it didn’t stick') + '.'; }
+      else if (path === 'C') { s += 'You ' + did + ', and you’re still at it, but you feel stuck.'; }
+      else { s += 'You hadn’t started yet, because ' + (ways[0] || 'it was hard to begin') + '.'; }
+      return s;
+    }
+    if (conv === 4) {
+      if (path === 'A') {
+        var stops = this.joinNice(this.stopReasons(a));
+        return 'why things stopped' + (stops ? ': ' + stops : '') + (a.c3_when ? ', usually ' + low(a.c3_when) : '') + '.';
+      }
+      if (path === 'C') {
+        var freq = { 'Every day': 'every day', 'A few times a week': 'a few times a week', 'On and off': 'on and off', 'Only when I remember': 'only when you remember' };
+        return 'that you keep at it ' + (freq[a.c3_c1] || 'regularly') + ', hoping for ' + (J(a.c3_c2) || 'progress') + (a.c3_c3 ? ', and you’ve been at it for ' + low(a.c3_c3) : '') + '.';
+      }
+      return 'what’s been holding you back: ' + (J(a.c3_b1) || 'it feels hard to begin') + '.' + (a.c3_b3 ? ' And that if you started, the first thing you’d do is ' + J(a.c3_b3) + '.' : '');
+    }
+    var about = { A: 'trying again', B: 'starting', C: 'changing one small thing in how you do it' }[path];
+    return 'that you’re feeling ' + low(a.c4_ready || 'unsure') + ' about ' + about + ', and that ' + (J(a.c4_easier) || 'smaller steps') + ' would help.';
+  }
+  blockerQ(a) {
+    var r = this.list(a.c2_way)[0];
+    var map = {
+      'Scared it won’t work': { q: 'You said you were scared it wouldn’t work. What’s the scariest part of it?', o: ['Failing again', 'What people might think', 'Wasting time and effort', 'Finding out I’m not good enough'] },
+      'Didn’t know where to start': { q: 'You said you weren’t sure where to start. What makes it hard to pick a starting point?', o: ['Too many options', 'I don’t know what I want yet', 'No one to ask', 'Scared of picking wrong'] },
+      'No time': { q: 'You said time was short. What usually takes up most of your day?', o: ['Work', 'Family', 'Travel', 'Phone and scrolling'] },
+      'No energy': { q: 'You said your energy was low. What drains you the most?', o: ['Work', 'Poor sleep', 'Worrying a lot', 'I’m not sure'] }
+    };
+    return map[r] || { q: 'What do you think has been holding you back most?', o: ['Fear of failing', 'Not knowing where to start', 'No time', 'No energy'] };
+  }
+  def(id, a) {
+    var self = this;
+    var J = function (x) { return self.joinNice(self.list(x)); };
+    var low = function (t) { return self.lower(t); };
+    var B = function (t) { return { k: 'bot', t: t }; };
+    var N = function (t) { return { k: 'note', t: t }; };
+    var C = function (title, rows) { return { k: 'card', title: title, rows: rows }; };
+    var go = function (to) { return function () { return to; }; };
+    var path = this.pathOf(a);
+    var triedAll = this.triedList(a);
+    var tried = triedAll.slice(0, 3);
+    var times = this.times(a);
+    var sN = this.sc(a), tN = this.tg(a);
+    var core = {
+      3: { A: 'c3_q0', B: 'c3_b1', C: 'c3_c1' }[path],
+      4: { A: 'c4_how', B: 'c4_b1', C: 'c4_c1' }[path],
+      5: 'c5_pick'
+    };
+
+    var mD = /^c([2-5])_(dsafe|dcrisis|dchoose|dtalk|dhelp|dbook)$/.exec(id);
+    if (mD) {
+      var dn = mD[1];
+      var p = 'c' + dn + '_';
+      switch (mD[2]) {
+        case 'dsafe':
+          return { bot: [B(a[p + 'hi'] === 'Low' ? 'Thank you for telling me. Let’s go really gently today.' : 'Thank you for telling me, Arjun. I’m really glad you did.'), B('Before anything else: are you safe right now?')], kind: 'buttons', options: ['Yes, I’m safe', 'I’m not sure', 'No'], next: function (v) { return v === 'Yes, I’m safe' ? p + 'dchoose' : p + 'dcrisis'; } };
+        case 'dcrisis':
+          return { bot: [B('I’m really glad you told me. You don’t have to handle this alone.'), B('Please call Tele-MANAS on 14416. It’s free, and someone is there any time, day or night. If you’re in immediate danger, call 112.'), B('Is there someone you trust who can be with you right now?')], kind: 'buttons', options: ['I’ll call now', 'I’m with someone', 'I need a minute'], next: go('END') };
+        case 'dchoose':
+          return { bot: [B('Okay, I’m glad. We don’t have to do anything big today.'), B('Do you want to talk about what’s making today hard, or keep it light?')], kind: 'buttons', options: ['Talk about it', 'Keep it light'], next: function (v) { return v === 'Talk about it' ? p + 'dtalk' : p + 'dhelp'; } };
+        case 'dtalk':
+          return { bot: [B('I’m listening. What’s making today hard?')], kind: 'multi', options: ['Something happened', 'Everything feels heavy', 'I’m exhausted', 'I don’t really know'], next: go(p + 'dhelp') };
+        case 'dhelp':
+          return { bot: [B(a[p + 'dtalk'] ? 'That sounds really hard. Thank you for sharing it with me.' : 'Light it is.'), B('What’s one small thing that usually helps you, even a little?')], kind: 'single', options: ['Music', 'A shower', 'A short walk', 'Talking to someone', 'Rest'], next: go(p + 'dbook') };
+        case 'dbook':
+          var helps = { 'Music': 'put on a song you like', 'A shower': 'take a warm shower', 'A short walk': 'step out for a short walk', 'Talking to someone': 'message someone you trust', 'Rest': 'let yourself rest' };
+          var h = a[p + 'dhelp'];
+          return { bot: [B('For today, that’s the only thing: ' + (helps[h] || low(h || 'rest')) + '. Nothing else. That’s enough.'), B('Can I check in with you again, just to say hi? We’ll pick up our usual chat when you’re ready.')], kind: 'single', options: times, own: false, next: go('END') };
+      }
+    }
+
+    var mHi = /^c([2-5])_(hi|where|ok|fact|chg)$/.exec(id);
+    if (mHi) {
+      var cn = parseInt(mHi[1], 10);
+      if (mHi[2] === 'hi') {
+        var hello = { 2: 'Hey Arjun, thanks for showing up. That already counts.', 3: 'Hi Arjun, good to see you again.', 4: 'Hi Arjun, nice to see you.', 5: 'Hi Arjun, good to have you back.' };
+        var hi1 = a['dprev' + cn] ? 'Hi Arjun, it’s good to hear from you again. I’ve been thinking about you since last time.' : hello[cn];
+        return { bot: [B(hi1), B('Before anything else, how are you doing?')], kind: 'single', options: ['Good', 'Okay', 'Tired', 'Low', 'Stressed', 'Not great, honestly'], next: function (v) { return (v === 'Not great, honestly' || (v === 'Low' && sN <= 3)) ? 'c' + cn + '_dsafe' : 'c' + cn + '_where'; } };
+      }
+      if (mHi[2] === 'where') {
+        var moodAck = { 'Good': 'Love to hear that.', 'Okay': 'Okay is okay.', 'Tired': 'Thanks for still making time. We’ll keep it light.', 'Low': 'Thanks for telling me. We’ll go gently today.', 'Stressed': 'Thanks for telling me. We’ll go gently today.' };
+        return { bot: [B(moodAck[a['c' + cn + '_hi']] || 'Thanks for telling me.'), B('So, are you chilling at home right now, or out and about?')], kind: 'single', options: ['Chilling at home', 'At work', 'On the way somewhere', 'Out with friends'], next: go('c' + cn + '_ok') };
+      }
+      if (mHi[2] === 'ok') {
+        var place = a['c' + cn + '_where'];
+        var okAsk = {
+          'Chilling at home': 'Nice, that’s the best place for this. Shall we pick up where we left off?',
+          'At work': 'Thanks for making time at work. Is now an okay moment for about 15 minutes?',
+          'On the way somewhere': 'No rush. Is it okay to chat on the go, or would later be easier?',
+          'Out with friends': 'Oh nice, I hope you’re having a good time. Is it okay to chat for a bit now, or would you rather do it later?'
+        };
+        return { bot: [B(okAsk[place] || 'Is now a good time to chat for about 15 minutes?')], kind: 'buttons', options: ['Yes, let’s go', 'Later is better'], next: function (v) { return v === 'Later is better' ? 'RESCHED' : (cn === 2 ? (a.b_wake ? (self.list(a.s4).length > 1 ? 'c2_one' : 'c2_day') : 'b_age') : 'c' + cn + '_fact'); } };
+      }
+      if (mHi[2] === 'fact') {
+        return { bot: [B('Let’s pick up where we left off. Last time you told me ' + this.recap(cn, a)), B('Still the same, or has anything changed since?')], kind: 'buttons', options: ['Still the same', 'Something’s changed'], next: function (v) { return v === 'Still the same' ? core[cn] : 'c' + cn + '_chg'; } };
+      }
+      var chgOpts = { A: ['I’ve picked it up again', 'I feel differently about it', 'Something new came up'], B: ['I’ve started something small', 'I feel differently about it', 'Something new came up'], C: ['It’s started to move', 'I’ve stopped doing it', 'Something new came up'] }[path];
+      return { bot: [B('Oh, tell me. What’s changed?')], kind: 'multi', options: chgOpts, next: go(core[cn]) };
+    }
+
+    if (id.indexOf('c3_q') === 0) {
+      var i = parseInt(id.slice(4), 10);
+      var opener = i === 0
+        ? [B('Today I’d like to understand what happened when you tried. No judgement, just curiosity.')]
+        : [B(this.stopAck(a['c3_q' + (i - 1)]))];
+      var lead = i === 0 ? 'When you ' : 'And when you ';
+      return {
+        bot: opener.concat([B(lead + this.triedPhrase(tried[i], a) + ', what went wrong? Why do you think it wasn’t consistent?')]),
+        kind: 'multi',
+        options: ['It fizzled out', 'Dropped off my priorities', 'Got bored', 'No motivation', 'Didn’t see results'],
+        next: function () { return i + 1 < tried.length ? 'c3_q' + (i + 1) : 'c3_when'; }
+      };
+    }
+
+    switch (id) {
+      case 'b_age':
+        return { bot: [B('Before we go deeper, a few quick basics, so I only message you at times that suit you. It takes 30 seconds.'), B('How old are you?')], kind: 'single', options: ['18 to 24', '25 to 34', '35 to 44', '45 to 54', '55 or over'], own: false, next: go('b_gender') };
+      case 'b_gender':
+        return { bot: [B('And how do you identify?')], kind: 'single', options: ['Man', 'Woman', 'Non-binary', 'Prefer not to say'], own: false, next: go('b_work') };
+      case 'b_work':
+        return { bot: [B('What does your work day usually look like?')], kind: 'single', options: ['Daytime, roughly 9 to 6', 'Early, roughly 7 to 4', 'Evenings or nights', 'Flexible or from home', 'Not working right now', 'Studying'], own: false, next: go('b_sleep') };
+      case 'b_sleep':
+        return { bot: [B('Around what time do you usually go to sleep?')], kind: 'single', options: ['Before 10 pm', '10 to 11 pm', '11 pm to midnight', 'After midnight'], own: false, next: go('b_wake') };
+      case 'b_wake':
+        return { bot: [B('And when do you usually wake up?')], kind: 'single', options: ['Before 6 am', '6 to 7 am', '7 to 8 am', 'After 8 am'], own: false, next: function () { return self.list(a.s4).length > 1 ? 'c2_one' : 'c2_day'; } };
+      case 'c2_one':
+      case 'c2_day':
+        var s4 = this.list(a.s4);
+        var openLines = [B('Let’s pick up where we left off. Last time you told me the area affecting you most is ' + this.areaPhrase(a) + (s4.length ? ', and you mentioned ' + this.youJ(s4) : '') + '.'), N('Let me know if this gets too much. We can switch to just getting to know each other.')];
+        if (id === 'c2_one') {
+          return { bot: openLines.concat([B('I’d like to go a little deeper today. Out of what you told me, which one hits you hardest?')]), kind: 'single', options: s4, own: false, next: go('c2_day') };
+        }
+        var dayLead = a.c2_one ? [B('Thank you. That makes sense.')] : openLines.concat([B('I’d like to go a little deeper today.')]);
+        return { bot: dayLead.concat([B('What does that look like on a normal day?')]), kind: 'multi', options: this.ar(a).day, next: go('c2_goal') };
+      case 'c2_goal':
+        var honest = sN === 10 ? 'We’re only focusing on keeping it at 10.' : (sN <= 4 ? 'I’m not even thinking about going from ' + sN + ' to 10, not even ' + sN + ' to ' + (sN + 5) + '. ' : 'I’m not even thinking about 10. ') + 'We’re only focusing on ' + sN + ' to ' + tN + '.';
+        return { bot: [B('So it’s mostly ' + (this.mostly(a) || 'that this has been hard') + ', and on a normal day, ' + this.youJ(a.c2_day) + '. Thank you for being honest with me.'), B(this.firstMet(a) + ', you gave your life ' + sN + ' out of 10. I’ll be honest with you as well. ' + honest)], kind: 'buttons', options: ['All right'], next: go('c2_tried') };
+      case 'c2_tried':
+        return { bot: [B('Have you tried anything about it so far?')], kind: 'multi', options: this.ar(a).tried.map(function (x) { return x.o; }).concat(['Not yet, honestly']), next: go('c2_way') };
+      case 'c2_way':
+        if (!triedAll.length) {
+          return { bot: [B('That’s okay. Noticing it is already a first step.'), B('What’s kept you from starting?')], kind: 'multi', options: ['Didn’t know where to start', 'Scared it won’t work', 'No time', 'No energy'], next: go('c2_next') };
+        }
+        var td0 = this.tdef(a, triedAll[0]);
+        return { bot: [B(td0 ? td0.ack : 'Good, you did something about it. That counts.'), B('What happened with it?')], kind: 'multi', options: [this.still(), 'It slowly fizzled out', 'Dropped off my priorities', 'Got bored', 'No motivation', 'Didn’t hear back'], next: go('c2_next') };
+      case 'c2_next':
+        var wayAck = {
+          'It slowly fizzled out': 'Thanks for telling me. Things slowly fizzling out happens to so many people, and it’s fixable.',
+          'Dropped off my priorities': 'Thanks for telling me. Life gets busy and the important things slip. That’s fixable.',
+          'Got bored': 'Thanks for telling me. When something feels repetitive, it’s hard to keep at it. That makes sense.',
+          'No motivation': 'Thanks for being honest. Motivation comes and goes for everyone.',
+          'Didn’t hear back': 'That’s discouraging, no doubt. Thanks for telling me.',
+          'Didn’t know where to start': 'Thanks for telling me. Not knowing where to start is one of the most common reasons people wait.',
+          'Scared it won’t work': 'Thanks for being honest. That fear is real, and it means this matters to you.',
+          'No time': 'Thanks for telling me. Time is tight for a lot of people. We’ll work with what you have.',
+          'No energy': 'Thanks for telling me. Low energy makes everything harder. We’ll keep things small.'
+        };
+        wayAck[this.still()] = 'That’s great that you’re still at it. Staying with something is the hardest part, so let’s figure out where it’s getting stuck.';
+        var firstWay = path === 'C' ? this.still() : this.list(a.c2_way)[0];
+        return { bot: [B(wayAck[firstWay] || 'Thanks for telling me.'), B('Do you want to keep talking about this, or talk about something else for a bit?')], kind: 'buttons', options: ['Keep going', 'Something else'], next: function (v) { return v === 'Keep going' ? 'c2_sum' : 'c2_k1'; } };
+      case 'c2_k1':
+        return { bot: [B('Of course. Let’s keep it light for a bit.'), B('On a free evening, you’d rather…')], kind: 'single', options: ['Stay in with a book or a show', 'Go out with friends', 'Depends on my mood'], next: go('c2_k2') };
+      case 'c2_k2':
+        return { bot: [B('What do you enjoy?')], kind: 'multi', options: ['Reading', 'Music', 'Sports or fitness', 'Movies', 'Cooking', 'Being outdoors'], next: go('c2_k3') };
+      case 'c2_k3':
+        return { bot: [B('After a long week, what recharges you?')], kind: 'single', options: ['Time alone', 'Time with people', 'A bit of both'], next: go('c2_sum') };
+      case 'c2_sum':
+        var story = 'So here’s what I’m hearing, Arjun. What’s been weighing on you most is ' + this.areaPhrase(a) + (this.hardest(a) ? ', mostly ' + this.mostly(a) : '') + '. On a normal day, ' + this.youJ(a.c2_day) + '. ';
+        var ways = this.list(a.c2_way).filter(function (w) { return w !== self.still(); }).map(function (w) { return self.wayPhrase(w); });
+        var did = this.joinNice(triedAll.map(function (t) { return self.triedPhrase(t, a); }));
+        if (path === 'A') { story += 'You did take a step: you ' + did + '. But ' + (ways[0] || 'it didn’t stick') + '.'; }
+        else if (path === 'C') { story += 'You’re already doing something about it: you ' + did + ', and you’re still at it. But it feels stuck.'; }
+        else { story += 'You haven’t tried anything yet, and that’s okay. What’s held you back is that ' + (ways[0] || 'it’s been hard to begin') + '.'; }
+        if (a.c2_k3) { story += ' You recharge with ' + low(a.c2_k3) + (a.c2_k2 ? ', and you enjoy ' + J(a.c2_k2) : '') + '.'; }
+        if (a.c2_extra) { story += ' You also told me: “' + a.c2_extra + '”.'; }
+        return { bot: [{ k: 'story', title: 'What I’m hearing', t: story }, B('Have I understood you correctly?')], kind: 'buttons', options: ['Yes', 'I’d like to add something'], next: function (v) { return v === 'Yes' ? 'c2_buddy' : 'c2_add'; } };
+      case 'c2_add':
+        return { bot: [B('Of course. What would you like to add?')], kind: 'text', next: go('c2_sum') };
+      case 'c2_buddy':
+        var partner = 'I’m your life buddy, Arjun. I’ll be your partner while we move from ' + sN + ' to ' + tN + '.' + (tN + 1 <= 10 ? ' We don’t have to think about ' + (tN + 1) + '.' : '') + (tN + 2 <= 10 ? ' We don’t have to think about ' + (tN + 2) + '.' : '') + ' Just ' + tN + ', together.';
+        return { bot: [B('Great. I think we understand each other a little better now.'), B('Just so you know: it’s not about where you start, or how many times you fall. What matters is that you keep going.'), B(partner), B('And in case you’re wondering why we need each other on this journey: everyone needs someone to pat them on the back until they’re back on track. That’s all I’m here for.'), B('Sounds good?')], kind: 'buttons', options: ['Sounds good'], next: go('c2_book') };
+      case 'c2_book':
+        return { bot: [B('When should we talk next? 15 minutes is plenty.')], kind: 'single', options: times, own: false, next: go('END') };
+
+      case 'c3_when':
+        return { bot: [B(this.stopAck(a['c3_q' + Math.max(tried.length - 1, 0)])), B('When did things usually stop?')], kind: 'single', options: ['After a few days', 'After a couple of weeks', 'After a month or more'], next: go('c3_better') };
+      case 'c3_b1':
+        var bq = this.blockerQ(a);
+        return { bot: [B('Today I’d like to understand what’s been holding you back. No judgement, just curiosity.'), B(bq.q)], kind: 'multi', options: bq.o, next: go('c3_b2') };
+      case 'c3_b2':
+        return { bot: [B('That makes sense. A lot of people feel exactly that.'), B('Has there been a time you started something, even though you felt that way?')], kind: 'single', options: ['Yes, a few times', 'Once or twice', 'Not really'], next: go('c3_b3') };
+      case 'c3_b3':
+        return { bot: [B(a.c3_b2 === 'Not really' ? 'That’s okay. There’s a first time for everything.' : 'That tells me you can do it, even when it’s hard.'), B('If you did start, what would be the very first thing you’d do?')], kind: 'multi', options: this.ar(a).first, next: go('c3_better') };
+      case 'c3_c1':
+        return { bot: [B('Today I’d like to understand where things are getting stuck. No judgement, just curiosity.'), B('When it comes to ' + this.doingPhrase(tried[0], a) + ', what does a normal week of it look like?')], kind: 'single', options: ['Every day', 'A few times a week', 'On and off', 'Only when I remember'], next: go('c3_c2') };
+      case 'c3_c2':
+        return { bot: [B(a.c3_c1 === 'Every day' || a.c3_c1 === 'A few times a week' ? 'That’s real consistency. Not many people manage that.' : 'Got it. That’s honest, and very normal.'), B('What are you hoping to see that you’re not seeing yet?')], kind: 'multi', options: ['Results or replies', 'Feeling better', 'Some recognition', 'Honestly, not sure any more'], next: go('c3_c3') };
+      case 'c3_c3':
+        return { bot: [B('That makes sense.'), B('And how long have you been at it?')], kind: 'single', options: ['Under a month', '1 to 3 months', '3 to 6 months', 'More than 6 months'], next: go('c3_better') };
+      case 'c3_better':
+        return { bot: [B('Thank you, Arjun. I think I know you a little better today.'), B('Want to wrap up here, or a few easy questions so we get to know each other?')], kind: 'buttons', options: ['A few questions', 'Wrap up for today'], next: function (v) { return v === 'A few questions' ? 'c3_k1' : 'c3_book'; } };
+      case 'c3_k1':
+        return { bot: [B('Easy ones, promise. Are you more of a morning person or a night person?')], kind: 'single', options: ['Morning', 'Night', 'Somewhere in between'], next: go('c3_k2') };
+      case 'c3_k2':
+        return { bot: [B('Do you like having a plan, or going with the flow?')], kind: 'single', options: ['A clear plan', 'Go with the flow', 'A bit of both'], next: go('c3_k3') };
+      case 'c3_k3':
+        return { bot: [B('When you get things done, is it easier alone or with someone?')], kind: 'single', options: ['Alone', 'With someone', 'Depends on the task'], next: go('c3_book') };
+      case 'c3_book':
+        return { bot: [B('When should we talk next?')], kind: 'single', options: times, own: false, next: go('END') };
+
+      case 'c4_how':
+        return { bot: [B('Today, two quick questions about how you went about it, and then I’d love to know how you’re feeling.'), B('When you ' + this.triedPhrase(tried[0], a) + ', how did it usually happen?')], kind: 'single', options: ['Lots in one go when I felt ready', 'A few every week', 'Only when something pushed me'], next: go('c4_felt') };
+      case 'c4_b1':
+        return { bot: [B('Today, two quick questions about what happens when you think about starting, and then I’d love to know how you’re feeling.'), B('When you think about starting, what usually happens?')], kind: 'single', options: ['I overthink it', 'I put it off', 'I feel overwhelmed', 'I get excited, then stall'], next: go('c4_felt') };
+      case 'c4_c1':
+        return { bot: [B('Today, two quick questions about how it’s going, and then I’d love to know how you’re feeling about it.'), B('If you had to guess, what’s holding it back most?')], kind: 'single', options: ['Doing the same thing over and over', 'No feedback on how I’m doing', 'Doing too much at once', 'It might not be the right thing for me'], next: go('c4_felt') };
+      case 'c4_felt':
+        var feltQ = { A: 'And when it stopped, how did you feel about yourself?', B: 'And when that happens, how do you feel about yourself?', C: 'And when it doesn’t move, how do you feel about yourself?' }[path];
+        return { bot: [B('Got it.'), B(feltQ)], kind: 'single', options: ['Okay, life happens', 'Frustrated', 'I beat myself up', 'Like giving up'], next: go('c4_ready') };
+      case 'c4_ready':
+        var reflect = path === 'B'
+          ? 'Thanks for being honest. Not starting isn’t laziness. When something feels big and uncertain, our mind protects us by waiting. The way through is a first step so small it doesn’t feel scary.'
+          : path === 'C'
+            ? 'Thanks for being honest. You’re not starting from zero. You’re already doing the hardest part, which is showing up. We just need to change one small thing about how.'
+            : (this.isBurst(a)
+              ? 'Thanks for being honest. It sounds like it came in bursts: a lot at once, then a long gap. That’s really common, and it isn’t a willpower problem. Bursts burn out. Small and steady wins.'
+              : 'Thanks for being honest. You’ve actually been fairly steady, which is hard. So this time we’ll look at what isn’t landing, not at how hard you’re trying.');
+        var readyQ = { A: 'How do you feel about trying again?', B: 'How do you feel about starting?', C: 'How do you feel about changing one small thing in how you do it?' }[path];
+        var scared = { A: 'Scared it’ll fail again', B: 'Scared it won’t work', C: 'Scared it won’t help' }[path];
+        return { bot: [B(reflect), B('Now, the question that matters most today. ' + readyQ)], kind: 'single', options: ['Ready', 'Unsure', 'Tired of trying', scared], next: go('c4_easier') };
+      case 'c4_easier':
+        return { bot: [B(a.c4_ready === 'Ready' ? 'That’s really good to hear.' : 'That’s completely okay. Feeling that way makes sense.'), B('What would make it easier this time?')], kind: 'multi', options: ['Smaller steps', 'Someone checking in', 'A clear plan', 'Seeing progress'], next: go('c4_energy') };
+      case 'c4_energy':
+        return { bot: [B('And realistically, how much time and energy do you have on a normal day?')], kind: 'single', options: ['5 minutes', '15 minutes', '30 minutes', 'It varies a lot'], next: go('c4_story') };
+      case 'c4_story':
+        var st = [];
+        if (a.c4_ready !== 'Ready') { st.push(B('Here’s something I want you to know. Smaller is fine. One small thing done is worth more than a big plan that never starts.')); }
+        st.push(B('And a little about me. I’m an AI, but I was made by someone who’s been where you are. He spent years feeling stuck in his health, his mind and his career. What he wanted most was someone to check in, every day, a little at a time. So he built me to be that for you.'));
+        return { bot: st, kind: 'buttons', options: ['Thank you for telling me'], next: go('c4_more') };
+      case 'c4_more':
+        return { bot: [B('Want to wrap up here, or a few easy questions about you?')], kind: 'buttons', options: ['A few questions', 'Wrap up for today'], next: function (v) { return v === 'A few questions' ? 'c4_k1' : 'c4_book'; } };
+      case 'c4_k1':
+        return { bot: [B('How do you like to be encouraged?')], kind: 'single', options: ['Gently', 'Straight talk', 'A mix'], next: go('c4_k2') };
+      case 'c4_k2':
+        return { bot: [B('When you’re stressed, you usually…')], kind: 'single', options: ['Go quiet', 'Talk it out', 'Keep busy'], next: go('c4_k3') };
+      case 'c4_k3':
+        return { bot: [B('One thing that always lifts your mood?')], kind: 'multi', options: ['Music', 'Good food', 'A walk', 'Talking to someone'], next: go('c4_book') };
+      case 'c4_book':
+        return { bot: [B('Next time, we start. Just one small thing.'), B('When should we talk?')], kind: 'single', options: times, own: false, next: go('END') };
+
+      case 'c5_pick':
+        var en = a.c4_energy;
+        var fits = en === 'It varies a lot' ? 'a day when time is short' : 'about ' + low(en || '15 minutes') + ' a day';
+        var why = { A: ', and none of them repeat what you tried before.', B: ', and each one is small enough that it shouldn’t feel scary.', C: ', and each one is a small change to what you’re already doing, not something new.' }[path];
+        var prog = this.list(a.c4_easier).indexOf('Seeing progress') !== -1 ? [B('And since seeing progress helps you, I’ll show you every day you do it.')] : [];
+        return { bot: [B('So today, we start with the smallest step possible. Here are three. Each one fits in ' + fits + why)].concat(prog, [B('Pick the one that feels easiest.')]), kind: 'single', options: this.stepsFor(a), own: false, next: go('c5_when') };
+      case 'c5_when':
+        return { bot: [B('Good choice.'), B('When in your day will you do it?')], kind: 'single', options: ['After morning tea', 'At lunch', 'After work, before dinner', 'Before bed'], own: false, next: go('c5_block') };
+      case 'c5_block':
+        return { bot: [B('And what might get in the way?')], kind: 'single', options: ['I forget', 'I’m too tired', 'Something urgent comes up', 'I lose interest'], next: go('c5_check') };
+      case 'c5_check':
+        return { bot: [B('Last one. How should I check in on you?')], kind: 'single', options: ['A morning reminder', 'An evening check', 'Both'], own: false, next: go('c5_plan') };
+      case 'c5_plan':
+        var anchors = { 'After morning tea': 'my morning tea', 'At lunch': 'lunch', 'After work, before dinner': 'I finish work', 'Before bed': 'I get into bed' };
+        var backups = { 'I forget': 'If I forget, I’ll do it as soon as I remember, even for 2 minutes.', 'I’m too tired': 'If I’m too tired, I’ll do just 2 minutes of it.', 'Something urgent comes up': 'If something urgent comes up, I’ll do 2 minutes before bed.', 'I lose interest': 'If I lose interest, I’ll tell my life buddy instead of quitting.' };
+        var stepTxt = this.meIfy(low(a.c5_pick || this.stepsFor(a)[0]));
+        var planRows = [{ t: 'After ' + (anchors[a.c5_when] || 'my morning tea') + ', I’ll ' + stepTxt + '.' }, { t: backups[a.c5_block] || ('Backup: ' + low(a.c5_block || '')) }, { t: 'Check-ins: ' + low(a.c5_check || 'Both') + '.' }, { t: 'Level 1. We move up only when it feels easy.' }];
+        if (this.ar(a).care) { planRows.push({ t: this.ar(a).care }); }
+        return { bot: [B('Here’s your first step, in your words.'), C('Your first step', planRows), B('Does this feel doable?')], kind: 'buttons', options: ['Yes, let’s do it', 'Make it smaller'], next: function (v) { return v === 'Make it smaller' ? 'c5_small' : 'c5_more'; } };
+      case 'c5_small':
+        return { bot: [B('Done. We’ll start with just 2 minutes of it. Smaller is fine, and it still counts.')], kind: 'buttons', options: ['Okay'], next: go('c5_more') };
+      case 'c5_more':
+        return { bot: [B('Want to wrap up here, or a couple of quick questions about you?')], kind: 'buttons', options: ['A couple of questions', 'Wrap up for today'], next: function (v) { return v === 'A couple of questions' ? 'c5_k1' : 'END'; } };
+      case 'c5_k1':
+        return { bot: [B('How should my reminders feel?')], kind: 'single', options: ['A short nudge', 'A question', 'A quote'], next: go('c5_k2') };
+      case 'c5_k2':
+        return { bot: [B('When you do your step, should I celebrate it?')], kind: 'single', options: ['Yes, cheer me on', 'Quietly, please'], next: go('END') };
+    }
+    return { bot: [], kind: 'buttons', options: ['Continue'], next: go('END') };
+  }
+  endMsgs(conv, a) {
+    var self = this;
+    var J = function (x) { return self.joinNice(self.list(x)); };
+    var low = function (t) { return self.lower(t); };
+    var path = this.pathOf(a);
+    var sN = this.sc(a), tN = this.tg(a);
+    var p = 'c' + conv + '_';
+    var head = [];
+    if (a[p + 'hi']) { head.push('Today: felt ' + low(a[p + 'hi']) + (a[p + 'where'] ? ', ' + low(a[p + 'where']) : '')); }
+    if (a[p + 'chg']) { head.push('Update since last chat: ' + J(a[p + 'chg'])); }
+    var S = function (rows) { return { k: 'status', title: 'Where we are with Arjun', rows: head.concat(rows).map(function (t) { return { t: self.pron(a, t) }; }) }; };
+    if (this.isD(conv, a)) {
+      if (a[p + 'dcrisis']) {
+        return [{ k: 'bot', t: 'Thank you for staying with me. Please do call 14416, or 112 if you’re in danger. You matter, Arjun.' }, { k: 'bot', t: 'I’ll check in on you tomorrow morning. We won’t do anything else today.' }, S(['Path D today: safety first, all other questions stopped', 'He said he is not sure he’s safe, or not safe', 'Shown: Tele-MANAS 14416 and 112', 'Next: a gentle check-in tomorrow morning, then chat ' + conv + ' again only when he’s ready', 'Real app: a human safety review (to decide)'])];
+      }
+      var dr = ['Path D today: a gentle chat, goal questions paused', 'Safe: yes'];
+      if (a[p + 'dtalk']) { dr.push('What made today hard: ' + J(a[p + 'dtalk'])); }
+      dr.push('His care step: ' + low(a[p + 'dhelp'] || 'rest'), 'Booked: a gentle check-in, ' + this.phrase(a[p + 'dbook']), 'Next: chat ' + conv + ' again, back on path ' + this.pathName(path) + ', if he’s feeling up to it');
+      return [{ k: 'bot', t: 'Take care of yourself tonight, Arjun. You’re not alone in this.' }, { k: 'note', t: 'Tele-MANAS: 14416, free and open any time.' }, S(dr)];
+    }
+    var lean = this.isIntro(a) ? 'leans introvert, prefers staying in' : 'leans extrovert, enjoys being with people';
+    if (conv === 2) {
+      var r2 = [(a.b_work ? 'Basics: ' + a.b_age + ', ' + this.lower(a.b_gender) + ', works ' + this.lower(a.b_work) + ', sleeps ' + this.lower(a.b_sleep) + ', wakes ' + this.lower(a.b_wake) : 'Basics: not asked'), 'Path: ' + this.pathName(path), 'Knows: area, ' + this.areaLabel(a) + (this.hardest(a) ? '; hardest part, ' + this.you(this.hardest(a)) : ''), 'Knows: on a normal day, ' + this.youJ(a.c2_day)];
+      if (path === 'B') { r2.push('Knows: what’s kept him from starting, ' + J(a.c2_way)); }
+      else { r2.push('Knows: what he tried, ' + J(this.triedList(a)), 'Knows: what happened, ' + J(a.c2_way)); }
+      if (a.c2_k3) { r2.push('Personality: ' + lean); }
+      var notYet2 = { A: 'Not yet: why each attempt stopped', B: 'Not yet: what exactly holds him back', C: 'Not yet: where exactly it’s stuck' }[path];
+      r2.push('Agreed: ' + sN + ' to ' + tN + ' only, nothing beyond', 'Bond: met his life buddy, knows why', 'Booked: chat 3, ' + this.phrase(a.c2_book), notYet2);
+      return [{ k: 'bot', t: 'Done, see you ' + this.phrase(a.c2_book) + '. Take care, Arjun.' }, S(r2)];
+    }
+    if (conv === 3) {
+      var r3 = path === 'A'
+        ? ['Knows: why it stopped, ' + this.joinNice(this.stopReasons(a)), 'Knows: when it stopped, ' + low(a.c3_when)]
+        : path === 'C'
+          ? ['Knows: how often he does it, ' + low(a.c3_c1), 'Knows: what he’s hoping for, ' + J(a.c3_c2), 'Knows: how long he’s been at it, ' + low(a.c3_c3)]
+          : ['Knows: what holds him back most, ' + J(a.c3_b1), 'Knows: has he started despite it before, ' + low(a.c3_b2), 'Knows: his first idea of a start, ' + J(a.c3_b3)];
+      if (a.c3_k1) { r3.push('Personality: ' + low(a.c3_k1) + ' person, likes ' + low(a.c3_k2) + ', works best ' + low(a.c3_k3)); }
+      var notYet3 = { A: 'Not yet: how he tried, and whether he’s ready', B: 'Not yet: what happens when he tries to start, and whether he’s ready', C: 'Not yet: what’s holding it back, and whether he’s open to a change' }[path];
+      r3.push('Bond: “you know me a bit better”', 'Booked: chat 4, ' + this.phrase(a.c3_book), notYet3);
+      return [{ k: 'bot', t: 'Thank you, Arjun. See you ' + this.phrase(a.c3_book) + '. Take care.' }, S(r3)];
+    }
+    if (conv === 4) {
+      var first4 = { A: 'Knows: his pattern, ' + (this.isBurst(a) ? 'bursts, then long gaps' : 'fairly steady'), B: 'Knows: when he thinks of starting, ' + low(a.c4_b1), C: 'Knows: what he thinks is holding it back, ' + low(a.c4_c1) }[path];
+      var about4 = { A: 'trying again', B: 'starting', C: 'changing how he does it' }[path];
+      var r4 = [first4, 'Knows: feeling about ' + about4 + ', ' + low(a.c4_ready), 'Knows: what helps, ' + J(a.c4_easier), 'Knows: realistic time, ' + low(a.c4_energy)];
+      if (a.c4_k1) { r4.push('Encourage him: ' + low(a.c4_k1) + '. When stressed he tends to ' + low(a.c4_k2)); }
+      r4.push('Bond: knows the buddy’s story', 'Booked: chat 5, ' + this.phrase(a.c4_book), 'Not yet: a first step');
+      return [{ k: 'bot', t: 'See you ' + this.phrase(a.c4_book) + '. Next time, we start. Take care, Arjun.' }, S(r4)];
+    }
+    var kind5 = { A: ', on a new path', B: ', small enough to feel safe', C: ', a small change to what he already does' }[path];
+    var r5 = ['Has: one small first step' + kind5, 'Has: a time anchor and a backup plan', 'Set: plan level 1' + (a.c5_plan === 'Make it smaller' ? ', made smaller (2 minutes)' : ''), 'Agreed: check-ins, ' + low(a.c5_check)];
+    if (a.c5_k1) { r5.push('Reminders feel like: ' + low(a.c5_k1)); }
+    r5.push('Next: daily check-ins start tomorrow (to design)');
+    return [{ k: 'bot', t: 'It starts tomorrow. I’ll check in on just this one thing.' }, { k: 'bot', t: sN + ' to ' + tN + ', together. Take care, Arjun.' }, S(r5)];
+  }
+  pinned(conv, a) {
+    var self = this;
+    var J = function (x) { return self.joinNice(self.list(x)); };
+    var low = function (t) { return self.lower(t); };
+    var path = this.pathOf(a);
+    var rows = ['Life score: ' + this.sc(a) + '/10, aiming for ' + this.tg(a), 'Area: ' + this.areaLabel(a) + (this.hardest(a) ? ' · Hardest: ' + this.you(this.hardest(a)) : '')];
+    if (path === 'A') {
+      rows.push('Tried: ' + J(this.triedList(a)), 'What happened: ' + J(a.c2_way));
+      if (conv >= 4) { rows.push('Why it stopped: ' + this.joinNice(this.stopReasons(a))); }
+      if (conv >= 5) { rows.push('Pattern: ' + (this.isBurst(a) ? 'bursts, then gaps' : 'fairly steady') + ' · Feeling: ' + low(a.c4_ready)); }
+    } else if (path === 'C') {
+      rows.push('Doing: ' + J(this.triedList(a)) + ', still at it, but stuck');
+      if (conv >= 4) { rows.push('How often: ' + low(a.c3_c1) + ' · Hoping for: ' + J(a.c3_c2)); }
+      if (conv >= 5) { rows.push('Holding it back: ' + low(a.c4_c1) + ' · Feeling: ' + low(a.c4_ready)); }
+    } else {
+      rows.push('Hasn’t started yet. Held back by: ' + J(a.c2_way));
+      if (conv >= 4) { rows.push('Main blocker: ' + J(a.c3_b1)); }
+      if (conv >= 5) { rows.push('At the start he tends to: ' + low(a.c4_b1).replace(/^i /, 'I ') + ' · Feeling: ' + low(a.c4_ready)); }
+    }
+    return rows.map(function (t) { return { t: t }; });
+  }
+  meIfy(t) {
+    return t.split(/(“[^”]*”)/).map(function (part, i) {
+      if (i % 2 === 1) { return part; }
+      return part.replace(/\byour\b/g, 'my').replace(/\byou’d\b/g, 'I’d').replace(/\byou’re\b/g, 'I’m').replace(/\byou’ve\b/g, 'I’ve').replace(/\byou (miss|admire|enjoyed|could|did|can)\b/g, 'I $1').replace(/\byou\b/g, 'me');
+    }).join('');
+  }
+  readOnb() {
+    try {
+      var raw = window.localStorage.getItem('lifeos_onb');
+      if (!raw) { return null; }
+      var o = JSON.parse(raw);
+      if (!o || !o.area) { return null; }
+      return { name: o.name || 'Arjun', score: o.score || 2, area: o.area, areaOther: o.other || '', s4: o.s4 || [], onb_time: o.slot || 'Today, 7:30 pm', at: o.at || 1 };
+    } catch (e) { return null; }
+  }
+  sample(n, pv) {
+    pv = pv || {};
+    var path = pv.path || 'A';
+    var s = { onb_time: pv.onb_time || 'Today, 7:30 pm', score: pv.score || 2, area: pv.area || 'dir', areaOther: pv.areaOther || '', name: pv.name || 'Arjun' };
+    var ar = this.areas()[s.area] || this.areas().dir;
+    s.s4 = (pv.s4 && pv.s4.length) ? pv.s4.slice() : [ar.s4[0], ar.s4[1]];
+    if (n >= 3) {
+      if (s.s4.length > 1) { s.c2_one = s.s4[0]; }
+      Object.assign(s, { c2_day: [ar.day[0], ar.day[1]], c2_book: 'Tomorrow, 7:30 pm' });
+      if (path === 'B') { Object.assign(s, { c2_tried: ['Not yet, honestly'], c2_way: ['Scared it won’t work'], c2_k1: 'Stay in with a book or a show', c2_k3: 'Time alone' }); }
+      else if (path === 'C') { Object.assign(s, { c2_tried: [ar.tried[0].o], c2_way: [this.still()], c2_k1: 'Go out with friends', c2_k3: 'Time with people' }); }
+      else { Object.assign(s, { c2_tried: [ar.tried[0].o, ar.tried[1].o], c2_way: ['It slowly fizzled out'], c2_k1: 'Stay in with a book or a show', c2_k3: 'Time alone' }); }
+    }
+    if (n >= 4) {
+      if (path === 'B') { Object.assign(s, { c3_b1: ['Failing again'], c3_b2: 'Once or twice', c3_b3: [ar.first[0]] }); }
+      else if (path === 'C') { Object.assign(s, { c3_c1: 'A few times a week', c3_c2: ['Results or replies'], c3_c3: '1 to 3 months' }); }
+      else { Object.assign(s, { c3_q0: ['It fizzled out'], c3_q1: ['Got bored'], c3_when: 'After a few days' }); }
+      s.c3_book = 'Tomorrow, 7:30 pm';
+    }
+    if (n >= 5) {
+      if (path === 'B') { Object.assign(s, { c4_b1: 'I overthink it', c4_felt: 'I beat myself up', c4_ready: 'Unsure', c4_easier: ['Smaller steps', 'Someone checking in'], c4_energy: '15 minutes' }); }
+      else if (path === 'C') { Object.assign(s, { c4_c1: 'Doing the same thing over and over', c4_felt: 'Frustrated', c4_ready: 'Ready', c4_easier: ['Seeing progress'], c4_energy: '30 minutes' }); }
+      else { Object.assign(s, { c4_how: 'Lots in one go when I felt ready', c4_felt: 'I beat myself up', c4_ready: 'Unsure', c4_easier: ['Smaller steps', 'Someone checking in'], c4_energy: '15 minutes' }); }
+      s.c4_book = 'Tomorrow, 7:30 pm';
+    }
+    return s;
+  }
+  goTo(id, a, msgs) {
+    if (id === 'RESCHED') {
+      this.setState({ a: a, msgs: [], step: null, phase: 'resched', sel: [], own: '', err: '', lockNote: '' });
+      return;
+    }
+    if (id === 'END') {
+      var finalMsgs = msgs.concat(this.endMsgs(this.state.conv, a));
+      this.setState({ a: a, msgs: finalMsgs, step: null, phase: 'end', sel: [], own: '', err: '' });
+      this.logChat(this.state.conv, a, finalMsgs);
+      return;
+    }
+    var st = this.def(id, a);
+    this.setState({ a: a, msgs: msgs.concat(st.bot), step: id, phase: 'chat', sel: [], own: '', err: '' });
+  }
+  logChat(conv, a, msgs) {
+    var self = this;
+    var nm = a.name || 'Arjun';
+    var fix = function (t) { return (t || '').replace(/Arjun/g, nm); };
+    var lines = msgs.map(function (m) {
+      if (m.k === 'user') { return 'You: ' + m.t; }
+      if (m.k === 'status') { return '[Where we are] ' + (m.rows || []).map(function (r) { return fix(r.t); }).join(' | '); }
+      if (m.k === 'card') { return 'Buddy [' + m.title + ']: ' + (m.rows || []).map(function (r) { return r.t; }).join(' | '); }
+      if (m.k === 'story') { return 'Buddy [story]: ' + fix(m.t); }
+      if (m.k === 'note') { return 'Note: ' + m.t; }
+      return 'Buddy: ' + fix(m.t);
+    });
+    var runId = this.state.runId || ('run-' + Date.now());
+    var label = 'Chat ' + conv + (this.isD(conv, a) ? ' (Path D, gentle chat)' : '');
+    var log = (this.state.runLog || []).concat([{ chat: label, lines: lines }]);
+    var head = 'TEST RUN ' + runId + '\nOnboarding: ' + nm + ', score ' + this.sc(a) + '/10, area ' + this.areaLabel(a) + ', said: ' + this.list(a.s4).join('; ') + '\nPath: ' + this.pathName(this.pathOf(a));
+    var text = head + '\n\n' + log.map(function (c) { return '=== ' + c.chat + ' ===\n' + c.lines.join('\n'); }).join('\n\n');
+    if (window.LIFEOS_REAL) {
+      window.LIFEOS_REAL.chatDone({ conv: conv, a: JSON.parse(JSON.stringify(a)), msgs: msgs.filter(function (m) { return m.k !== 'status'; }).map(function (m) { return Object.assign({}, m, { t: fix(m.t), title: fix(m.title || '') }); }), path: this.pathOf(a), d: this.isD(conv, a), text: text, area: this.areaLabel(a), score: this.sc(a) });
+      this.setState({ runId: runId, runLog: log, recordText: '', saveNote: '' });
+      return;
+    }
+    if (window.LIFEOS_HOOK && window.LIFEOS_HOOK.run) {
+      window.LIFEOS_HOOK.run({ runId: runId, chatsDone: log.length, text: text, path: this.pathName(this.pathOf(a)), area: this.areaLabel(a) });
+      this.setState({ runId: runId, runLog: log, recordText: text, saveNote: 'Saved on this device. When you’re done, tap “Send report” at the top.' });
+      return;
+    }
+    this.setState({ runId: runId, runLog: log, recordText: text, saveNote: 'Saving this test run…' });
+    (async function () {
+      try {
+        if (!window.claude || !window.claude.use) { throw new Error('none'); }
+        var db = await window.claude.use('db');
+        if (!db) { throw new Error('none'); }
+        await db.collection('test_runs').doc(runId).set({ runId: runId, savedAt: Date.now(), name: nm, area: self.areaLabel(a), score: self.sc(a), path: self.pathOf(a), chatsDone: log.length, text: text, answers: JSON.parse(JSON.stringify(a)) });
+        self.setState({ saveNote: 'Test run saved for Claude (' + log.length + ' chat' + (log.length === 1 ? '' : 's') + ').' });
+      } catch (e) {
+        self.setState({ saveNote: 'Couldn’t save automatically. At the end of chat 5, copy the record below and paste it to Claude.' });
+      }
+    })();
+  }
+  answer(val, label) {
+    var s = this.state;
+    var st = this.def(s.step, s.a);
+    var a = Object.assign({}, s.a);
+    a[s.step] = val;
+    if (s.step === 'c2_add') { a.c2_extra = a.c2_extra ? a.c2_extra + '; ' + val : val; }
+    var msgs = s.msgs.concat([{ k: 'user', t: label }]);
+    if (s.step === 'b_wake') { msgs.push({ k: 'bot', t: 'Thanks, that helps. I’ll keep my messages to times that suit your day.' }); }
+    if (/_dbook$/.test(s.step)) { a[this.lockKey(s.conv)] = val; }
+    if (/_dcrisis$/.test(s.step)) { a[this.lockKey(s.conv)] = 'Tomorrow, 8:00 am'; }
+    if (/_dbook$|_dcrisis$/.test(s.step)) { delete a[this.lockKey(s.conv) + '@']; }
+    if (/_chg$/.test(s.step)) { msgs.push({ k: 'bot', t: 'Got it, thanks for telling me. I’ll keep that in mind.' }); }
+    this.goTo(st.next(val, a), a, msgs);
+  }
+  renderVals() {
+    var self = this;
+    var s = this.state;
+    var accent = this.props.accent ?? '#3D5F4C';
+    var a = s.a;
+    var nmVal = a.name || 'Arjun';
+    var nmz = function (t) { return (t || '').replace(/Arjun/g, nmVal); };
+    var onbNow = this.readOnb();
+    var R = window.LIFEOS_REAL || null;
+    var titles = { 2: 'The crux', 3: 'What stopped you', 4: 'Ready to try again?', 5: 'The smallest step' };
+    var lockTime = a[this.lockKey(s.conv)] || (s.conv === 2 ? 'Today, 7:30 pm' : 'Tomorrow, 7:30 pm');
+    var parts = lockTime.split(', ');
+    var clock = (parts[1] || '7:30 pm').split(' ')[0];
+    var lockTexts = {
+      2: 'Hi Arjun, it’s ' + clock + ', the time we picked. Ready for our chat?',
+      3: 'Hi Arjun, it’s ' + clock + '. Today is about what happened when you tried.',
+      4: 'Hi Arjun, it’s ' + clock + '. Today: how you’re feeling about trying again.',
+      5: 'Hi Arjun, it’s ' + clock + '. Today we start, with one small step.'
+    };
+    var st = (s.phase === 'chat' && s.step) ? this.def(s.step, a) : null;
+    var kind = st ? st.kind : '';
+
+    var chips = [];
+    var buttons = [];
+    if (st && (kind === 'multi' || kind === 'single')) {
+      chips = st.options.map(function (label) {
+        var on = s.sel.indexOf(label) !== -1;
+        return {
+          label: label, pressed: on ? 'true' : 'false',
+          bg: on ? accent : '#FFFFFF', fg: on ? '#FFFFFF' : '#1E1C19', bd: on ? accent : '#D9D1C3',
+          pick: function () {
+            var cur = self.state.sel.slice();
+            var at = cur.indexOf(label);
+            if (kind === 'single') { cur = at === -1 ? [label] : []; }
+            else if (at === -1) { cur.push(label); } else { cur.splice(at, 1); }
+            self.setState({ sel: cur, err: '' });
+          }
+        };
+      });
+    }
+    if (st && kind === 'buttons') {
+      buttons = st.options.map(function (label, idx) {
+        var primary = idx === 0;
+        return { label: label, bg: primary ? accent : '#FFFFFF', fg: primary ? '#FFFFFF' : '#1E1C19', bd: primary ? accent : '#D9D1C3', pick: function () { self.answer(label, label); } };
+      });
+    }
+
+    if (window.LIFEOS_HOOK) {
+      var lastBot = '';
+      s.msgs.forEach(function (m) { if (m.k === 'bot') { lastBot = nmz(m.t); } });
+      window.LIFEOS_HOOK.ctx = { phase: s.phase, chat: s.conv, step: s.step || '', path: (s.conv >= 3 || s.a.c2_tried) ? this.pathName(this.pathOf(a)) : '', area: this.areaLabel(a), lastMessage: lastBot };
+    }
+    var msgs = s.msgs.filter(function (m) { return !((window.LIFEOS_TESTER || R) && m.k === 'status'); }).map(function (m) {
+      return {
+        t: nmz(m.t), by: m.by || '', title: nmz(m.title || ''),
+        rows: (m.rows || []).map(function (r) { return { t: nmz(r.t) }; }),
+        isBot: m.k === 'bot', isUser: m.k === 'user', isNote: m.k === 'note',
+        isQuote: m.k === 'quote', isStory: m.k === 'story', isCard: m.k === 'card', isStatus: m.k === 'status'
+      };
+    });
+
+    var jumps = [2, 3, 4, 5].map(function (n) {
+      var on = n === s.conv;
+      return { label: 'Chat ' + n, aria: 'Preview chat ' + n, bg: on ? '#FAF8F4' : 'transparent', fg: on ? '#1E1C19' : '#FAF8F4', bd: on ? '#FAF8F4' : '#6B645A', pick: function () { var pv = self.state.pv; self.setState(self.fresh(n, self.sample(n, pv))); } };
+    });
+    var pv = s.pv || { score: 2, path: 'A' };
+    var setPv = function (np) { self.setState(Object.assign(self.fresh(self.state.conv, self.sample(self.state.conv, np)), { pv: np })); };
+    var paths = [{ id: 'A', label: 'A · Tried, stopped' }, { id: 'B', label: 'B · Not started' }, { id: 'C', label: 'C · Still at it, stuck' }].map(function (o) {
+      var on = pv.path === o.id;
+      return { label: o.label, pressed: on ? 'true' : 'false', bg: on ? '#FAF8F4' : 'transparent', fg: on ? '#1E1C19' : '#FAF8F4', bd: on ? '#FAF8F4' : '#6B645A', pick: function () { setPv(Object.assign({}, pv, { path: o.id })); } };
+    });
+
+    var reschedTimes = this.times(s.a).map(function (t) {
+      return { label: t, pick: function () {
+        var na = Object.assign({}, self.state.a);
+        na[self.lockKey(self.state.conv)] = t;
+        delete na[self.lockKey(self.state.conv) + '@'];
+        self.setState({ a: na, phase: 'lock', lockNote: R ? 'Moved to ' + self.lower(t).replace(/ \(.*\)$/, '') + '. No guilt, life happens.' : 'Rescheduled to ' + self.lower(t) + '. Here’s how it will look then.' });
+      } };
+    });
+
+    var firstStep = { 2: 'c2_hi', 3: 'c3_hi', 4: 'c4_hi', 5: 'c5_hi' };
+    var tooMuchSteps = ['c2_one', 'c2_day', 'c2_goal', 'c2_tried', 'c2_way', 'c2_next'];
+
+    var nextAt = R ? R.whenFor(a, this.lockKey(s.conv)) : null;
+    var due = R ? R.isDue(nextAt) : false;
+    var after5 = s.conv > 5;
+    var homeKick = after5 ? 'Week 1 starts tomorrow' : (a['dprev' + s.conv] ? 'A gentle check-in' : 'Our next chat · ' + s.conv + ' of 5');
+    var hasCrisis = s.msgs.some(function (m) { return m.k === 'bot' && /14416/.test(m.t || ''); });
+    var pushState = R ? R.pushState() : 'on';
+    return {
+      accent: accent,
+      isHome: !!R && s.phase === 'lock',
+      homeDate: R ? new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' }) : '',
+      homeHello: (function () { var h = new Date().getHours(); return (h < 12 ? 'Good morning' : (h < 17 ? 'Good afternoon' : 'Good evening')) + ', ' + nmVal; })(),
+      homeKicker: homeKick,
+      homeWhen: after5 ? 'Your first small step' : (R && nextAt ? R.label(nextAt) : ''),
+      homeText: after5 ? 'I’ll check in with you about it. That’s all for now.' : (due ? nmz(a['dprev' + s.conv] ? 'Hi Arjun, it’s me. Just checking in on you, no pressure at all.' : lockTexts[s.conv]) : (pushState === 'on' ? 'I’ll send you a message then. 10 to 15 minutes is plenty.' : 'Open the app around then and we’ll talk. 10 to 15 minutes is plenty.')),
+      homeCanTalk: !after5 && due,
+      homeWaiting: !after5 && !due,
+      homeEarly: !!R && !after5 && !due && R.testing(),
+      homeRest: 'Nothing else to do today. Rest is part of it too.',
+      homePushOff: !!R && pushState !== 'on',
+      pushOffText: pushState === 'install' ? 'To get my messages, add Life OS to your Home Screen: tap Share, then Add to Home Screen, and open it from there.' : (pushState === 'blocked' ? 'Notifications are off for Life OS. You can turn them on in iPhone Settings, under Notifications. Until then, I’ll email you.' : 'Notifications are off, so I’ll email you when it’s time.'),
+      canEnablePush: pushState === 'ask',
+      enablePush: function () { if (R) { R.enablePush().then(function () { self.forceUpdate(); }); } },
+      openMenu: function () { if (R) { R.openMenu(); } },
+      showCall: !!R && hasCrisis && (s.phase === 'chat' || s.phase === 'end'),
+      isOnb: s.phase === 'onb',
+      onOnbDone: function (d) {
+        d = d || {};
+        if (R && R.onboarded) { R.onboarded(d); }
+        var np = Object.assign({}, self.state.pv, { name: d.name || 'Arjun', score: d.score || 2, area: d.area || 'dir', areaOther: d.other || '', s4: d.s4 || [], onb_time: d.slot || 'Today, 7:30 pm', at: d.at || Date.now() });
+        self.setState(Object.assign(self.fresh(2, self.sample(2, np)), { pv: np, runId: null, runLog: [], recordText: '', copied: false, saveNote: '' }));
+      },
+      toOnb: function () { self.setState({ phase: 'onb', runId: null, runLog: [], recordText: '', copied: false, saveNote: '' }); },
+      isLock: !R && s.phase === 'lock',
+      isResched: s.phase === 'resched',
+      isChat: s.phase === 'chat' || s.phase === 'end',
+      isEnd: s.phase === 'end',
+      lockDay: parts[0] || 'Today',
+      lockClock: clock,
+      lockText: nmz(a['dprev' + s.conv] ? 'Hi Arjun, it’s me. Just checking in on you, no pressure at all.' : lockTexts[s.conv]),
+      hasLockNote: !!s.lockNote,
+      lockNote: s.lockNote,
+      jumps: jumps,
+      paths: paths,
+      scoreVal: this.sc(a),
+      scoreDown: function () { setPv(Object.assign({}, pv, { score: Math.max(1, (pv.score || 2) - 1) })); },
+      scoreUp: function () { setPv(Object.assign({}, pv, { score: Math.min(10, (pv.score || 2) + 1) })); },
+      areaBtn: 'Area: ' + this.areaLabel(a),
+      cycleArea: function () {
+        var order = ['mind', 'body', 'work', 'money', 'rel', 'dir', 'sleep', 'other'];
+        var nx = order[(order.indexOf(pv.area || 'dir') + 1) % order.length];
+        setPv(Object.assign({}, pv, { area: nx, s4: null, areaOther: '', at: null }));
+      },
+      onbAvail: !!(onbNow && onbNow.at !== pv.at),
+      useOnb: function () { setPv(Object.assign({}, pv, self.readOnb() || {})); },
+      hasOnbNote: !!pv.at,
+      onbNote: 'Using your onboarding answers: ' + (a.name || 'Arjun') + ', ' + this.sc(a) + '/10, ' + this.areaLabel(a),
+      reschedTimes: reschedTimes,
+      chatLabel: 'Chat ' + s.conv + ' of 5 · ' + titles[s.conv],
+      showTooMuch: s.conv === 2 && s.phase === 'chat' && tooMuchSteps.indexOf(s.step) !== -1,
+      hasPinned: s.conv >= 3,
+      pinned: s.conv >= 3 ? this.pinned(s.conv, a).map(function (r) { return { t: nmz(r.t) }; }) : [],
+      msgs: msgs,
+      askChips: kind === 'multi' || kind === 'single',
+      askText: kind === 'text',
+      askButtons: kind === 'buttons',
+      chipHint: kind === 'multi' ? 'Tap any that fit' : 'Tap one',
+      chips: chips,
+      buttons: buttons,
+      own: s.own,
+      hasErr: !!s.err,
+      err: s.err,
+      endCta: R ? 'Done for today' : this.isD(s.conv, a) ? 'Next time: chat ' + s.conv + ' again, gently' : (s.conv < 5 ? 'Go to chat ' + (s.conv + 1) : (window.LIFEOS_TESTER ? 'Test again with different answers' : 'Start over from chat 2')),
+      onOwn: function (e) { self.setState({ own: e.target.value, err: '' }); },
+      talkNow: function () { self.setState({ lockNote: '' }); self.goTo(firstStep[s.conv], s.a, []); },
+      reschedule: function () { self.setState({ phase: 'resched' }); },
+      backToLock: function () { self.setState({ phase: 'lock' }); },
+      tooMuch: function () { self.goTo('c2_k1', s.a, s.msgs.concat([{ k: 'user', t: 'This is getting a lot' }])); },
+      send: function () {
+        var cur = self.state;
+        var curSt = self.def(cur.step, cur.a);
+        var own = (cur.own || '').trim();
+        if (curSt.kind === 'text') {
+          if (!own) { self.setState({ err: 'Write a few words first.' }); return; }
+          self.answer(own, own);
+          return;
+        }
+        var vals = cur.sel.slice();
+        if (own && curSt.own !== false) { vals.push(own); }
+        if (!vals.length) { self.setState({ err: curSt.kind === 'single' ? 'Tap one, or write your own.' : 'Tap any that fit, or write your own.' }); return; }
+        if (curSt.kind === 'single') { self.answer(vals[0], vals[0]); }
+        else { self.answer(vals, vals.join(', ')); }
+      },
+      saveNote: s.saveNote || '',
+      showPreview: !window.LIFEOS_TESTER && !R,
+      showRecord: !window.LIFEOS_TESTER && !R && s.phase === 'end' && s.conv === 5 && !this.isD(5, a),
+      recordText: s.recordText || '',
+      copyLabel: s.copied ? 'Copied. Paste it to Claude' : 'Copy test record',
+      copyRecord: function () {
+        try { navigator.clipboard.writeText(self.state.recordText || '').then(function () { self.setState({ copied: true }); }, function () { self.setState({ copied: false, saveNote: 'Select the text in the box and copy it.' }); }); }
+        catch (e) { self.setState({ saveNote: 'Select the text in the box and copy it.' }); }
+      },
+      endAction: function () {
+        if (self.isD(s.conv, s.a)) {
+          var clean = {};
+          Object.keys(s.a).forEach(function (k) { if (k.indexOf('c' + s.conv + '_') !== 0) { clean[k] = s.a[k]; } });
+          clean['dprev' + s.conv] = true;
+          self.setState(self.fresh(s.conv, clean));
+          return;
+        }
+        if (R) { self.setState(self.fresh(s.conv + 1, s.a)); return; }
+        if (s.conv < 5) { self.setState(self.fresh(s.conv + 1, s.a)); }
+        else { var p0 = self.state.pv; self.setState(Object.assign(self.fresh(2, self.sample(2, p0)), { phase: 'onb', runId: null, runLog: [], recordText: '', copied: false, saveNote: '' })); }
+      }
+    };
+  }
+}
+</script>
+</body>
+</html>

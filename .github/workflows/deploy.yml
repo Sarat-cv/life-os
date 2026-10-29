@@ -1,0 +1,57 @@
+# Deploys Life OS on every push to main:
+#  - the app (web/) to GitHub Pages
+#  - the database changes and backend functions to Supabase
+# Needs, in GitHub > Settings > Secrets and variables > Actions:
+#   secrets:   SUPABASE_ACCESS_TOKEN, SUPABASE_DB_PASSWORD
+#   variables: SUPABASE_PROJECT_REF
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+jobs:
+  backend:
+    if: ${{ vars.SUPABASE_PROJECT_REF != '' }}
+    runs-on: ubuntu-latest
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+      PROJECT_REF: ${{ vars.SUPABASE_PROJECT_REF }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      - name: Fill in the project address for the scheduler
+        run: sed -i "s/__PROJECT_REF__/${PROJECT_REF}/g" supabase/migrations/*.sql
+      - name: Link the Supabase project
+        run: supabase link --project-ref "$PROJECT_REF" -p "$SUPABASE_DB_PASSWORD"
+      - name: Apply database changes
+        run: supabase db push -p "$SUPABASE_DB_PASSWORD"
+      - name: Deploy backend functions
+        run: supabase functions deploy --project-ref "$PROJECT_REF"
+
+  web:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: web
+      - id: deploy
+        uses: actions/deploy-pages@v4

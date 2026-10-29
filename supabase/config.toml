@@ -1,0 +1,9 @@
+project_id = "life-os-pilot"
+
+# The scheduler checks its own token, and the push key is public,
+# so neither function needs a signed-in user.
+[functions.tick]
+verify_jwt = false
+
+[functions.vapid]
+verify_jwt = false

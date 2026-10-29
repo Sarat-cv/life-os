@@ -1,0 +1,702 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Life OS first-time flow</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#3D5F4C}a:hover{color:#2F4A3B}
+</style>
+</helmet>
+<div style="position: relative; width: 390px; height: 844px; overflow: hidden; background: #FAF8F4; color: #1E1C19; font-family: Inter, system-ui, sans-serif">
+
+<sc-if value="{{ isWelcome }}" hint-placeholder-val="{{ true }}">
+  <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; box-sizing: border-box; display: flex; flex-direction: column; padding: 64px 24px 28px">
+    <div style="width: 64px; height: 64px; border-radius: 18px; background: {{accent}}; display: flex; align-items: center; justify-content: center">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20v-8"></path><path d="M12 12c0-3.5 2.5-6 6-6 0 3.5-2.5 6-6 6z"></path><path d="M12 14c0-3-2-5-5-5 0 3 2 5 5 5z"></path></svg>
+    </div>
+    <h1 style="margin: 28px 0 0; font-family: Newsreader, Georgia, serif; font-weight: 400; font-size: 36px; line-height: 1.1; letter-spacing: -0.01em">Hi. I’m glad you’re here.</h1>
+    <p style="margin: 16px 0 0; font-size: 17px; line-height: 1.55; color: #625C53">I’m here to help you get a little better, one small step at a time. A few quick questions, then we’ll pick a time to talk properly.</p>
+    <label for="name" style="display: block; margin-top: 36px; font-size: 15px; font-weight: 500">What should I call you?</label>
+    <input id="name" type="text" autocomplete="given-name" placeholder="Arjun" value="{{ name }}" onChange="{{ onName }}" style="margin-top: 10px; width: 100%; box-sizing: border-box; height: 54px; border: 1px solid #D9D1C3; border-radius: 14px; background: #FFFFFF; padding: 0 16px; font-family: Inter, system-ui, sans-serif; font-size: 17px; color: #1E1C19">
+    <sc-if value="{{ hasErr }}" hint-placeholder-val="{{ false }}">
+      <p role="alert" style="margin: 10px 0 0; color: #A23B2A; font-size: 14px">{{ err }}</p>
+    </sc-if>
+    <div style="flex-grow: 1"></div>
+    <button type="button" onClick="{{ welcomeNext }}" style="width: 100%; height: 54px; border: 0; border-radius: 16px; background: {{accent}}; color: #FFFFFF; font-family: Inter, system-ui, sans-serif; font-size: 16px; font-weight: 600; cursor: pointer">Let’s begin</button>
+    <p style="margin: 14px 0 0; font-size: 13px; color: #625C53; text-align: center">Private by design. Only you can see what you share.</p>
+    <sc-if value="{{ isReal }}" hint-placeholder-val="{{ false }}">
+      <button type="button" onClick="{{ signIn }}" style="margin-top: 6px; width: 100%; height: 44px; border: 0; background: transparent; color: #3F3A33; font-family: Inter, system-ui, sans-serif; font-size: 15px; cursor: pointer">Already started? Sign in</button>
+    </sc-if>
+  </div>
+</sc-if>
+
+<sc-if value="{{ isScore }}" hint-placeholder-val="{{ false }}">
+  <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; box-sizing: border-box; display: flex; flex-direction: column; padding: 16px 24px 28px">
+    <div style="display: flex; align-items: center; gap: 12px; height: 44px">
+      <button type="button" aria-label="Back" onClick="{{ back }}" style="width: 44px; height: 44px; margin-left: -10px; border: 0; background: transparent; display: flex; align-items: center; justify-content: center; cursor: pointer">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1E1C19" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"></path></svg>
+      </button>
+      <div style="display: flex; gap: 6px; flex-grow: 1">
+        <sc-for list="{{ dots }}" as="d" hint-placeholder-count="4">
+          <div style="flex: 1; height: 4px; border-radius: 2px; background: {{d.bg}}"></div>
+        </sc-for>
+      </div>
+      <span style="font-size: 13px; color: #625C53">{{ progressText }}</span>
+    </div>
+    <div style="display: flex; gap: 10px; align-items: flex-end; margin-top: 24px">
+      <div style="width: 30px; height: 30px; border-radius: 50%; background: {{accent}}; display: flex; align-items: center; justify-content: center; flex-shrink: 0">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20v-8"></path><path d="M12 12c0-3.5 2.5-6 6-6 0 3.5-2.5 6-6 6z"></path><path d="M12 14c0-3-2-5-5-5 0 3 2 5 5 5z"></path></svg>
+      </div>
+      <p style="margin: 0; background: #F1ECE3; border-radius: 18px 18px 18px 6px; padding: 13px 16px; font-size: 16px; line-height: 1.5; max-width: 290px">Nice to meet you, {{ displayName }}. Right now, how satisfied are you with your life overall?</p>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; margin-top: 32px">
+      <sc-for list="{{ scores }}" as="item" hint-placeholder-count="10">
+        <button type="button" onClick="{{ item.pick }}" aria-label="{{ item.aria }}" style="height: 56px; border-radius: 14px; border: 1px solid {{item.bd}}; background: {{item.bg}}; color: {{item.fg}}; font-family: Inter, system-ui, sans-serif; font-size: 18px; font-weight: 500; cursor: pointer">{{ item.n }}</button>
+      </sc-for>
+    </div>
+    <div style="display: flex; justify-content: space-between; margin-top: 10px; font-size: 13px; color: #625C53">
+      <span>Not at all</span>
+      <span>Completely</span>
+    </div>
+    <div style="flex-grow: 1"></div>
+    <sc-if value="{{ hasErr }}" hint-placeholder-val="{{ false }}">
+      <p role="alert" style="margin: 0 0 10px; color: #A23B2A; font-size: 14px">{{ err }}</p>
+    </sc-if>
+    <button type="button" onClick="{{ scoreNext }}" style="width: 100%; height: 54px; border: 0; border-radius: 16px; background: {{accent}}; color: #FFFFFF; font-family: Inter, system-ui, sans-serif; font-size: 16px; font-weight: 600; cursor: pointer">Continue</button>
+  </div>
+</sc-if>
+
+<sc-if value="{{ isReflect }}" hint-placeholder-val="{{ false }}">
+  <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; box-sizing: border-box; display: flex; flex-direction: column; padding: 16px 24px 28px">
+    <div style="display: flex; align-items: center; gap: 12px; height: 44px">
+      <button type="button" aria-label="Back" onClick="{{ back }}" style="width: 44px; height: 44px; margin-left: -10px; border: 0; background: transparent; display: flex; align-items: center; justify-content: center; cursor: pointer">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1E1C19" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"></path></svg>
+      </button>
+      <div style="display: flex; gap: 6px; flex-grow: 1">
+        <sc-for list="{{ dots }}" as="d" hint-placeholder-count="4">
+          <div style="flex: 1; height: 4px; border-radius: 2px; background: {{d.bg}}"></div>
+        </sc-for>
+      </div>
+      <span style="font-size: 13px; color: #625C53">{{ progressText }}</span>
+    </div>
+    <div style="display: flex; align-items: baseline; gap: 6px; margin-top: 40px">
+      <span style="font-family: Newsreader, Georgia, serif; font-size: 88px; line-height: 1; letter-spacing: -0.02em">{{ score }}</span>
+      <span style="font-size: 18px; color: #625C53">out of 10</span>
+    </div>
+    <h2 style="margin: 24px 0 0; font-family: Newsreader, Georgia, serif; font-weight: 400; font-size: 28px; line-height: 1.2">{{ scoreTitle }}</h2>
+    <p style="margin: 12px 0 0; font-size: 17px; line-height: 1.55; color: #3F3A33">{{ scoreBody }}</p>
+    <div style="background: #F1ECE3; border-radius: 20px; padding: 22px; margin-top: 28px">
+      <p style="margin: 0; font-family: Newsreader, Georgia, serif; font-style: italic; font-size: 22px; line-height: 1.35">“The best time to plant a tree was 20 years ago. The second best time is now.”</p>
+      <p style="margin: 12px 0 0; font-size: 13px; color: #625C53">Proverb, origin unknown</p>
+    </div>
+    <div style="flex-grow: 1"></div>
+    <button type="button" onClick="{{ reflectNext }}" style="width: 100%; height: 54px; border: 0; border-radius: 16px; background: {{accent}}; color: #FFFFFF; font-family: Inter, system-ui, sans-serif; font-size: 16px; font-weight: 600; cursor: pointer">Continue</button>
+  </div>
+</sc-if>
+
+<sc-if value="{{ isArea }}" hint-placeholder-val="{{ false }}">
+  <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; box-sizing: border-box; display: flex; flex-direction: column; padding: 16px 24px 28px">
+    <div style="display: flex; align-items: center; gap: 12px; height: 44px">
+      <button type="button" aria-label="Back" onClick="{{ back }}" style="width: 44px; height: 44px; margin-left: -10px; border: 0; background: transparent; display: flex; align-items: center; justify-content: center; cursor: pointer">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1E1C19" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"></path></svg>
+      </button>
+      <div style="display: flex; gap: 6px; flex-grow: 1">
+        <sc-for list="{{ dots }}" as="d" hint-placeholder-count="4">
+          <div style="flex: 1; height: 4px; border-radius: 2px; background: {{d.bg}}"></div>
+        </sc-for>
+      </div>
+      <span style="font-size: 13px; color: #625C53">{{ progressText }}</span>
+    </div>
+    <div style="display: flex; gap: 10px; align-items: flex-end; margin-top: 24px">
+      <div style="width: 30px; height: 30px; border-radius: 50%; background: {{accent}}; display: flex; align-items: center; justify-content: center; flex-shrink: 0">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20v-8"></path><path d="M12 12c0-3.5 2.5-6 6-6 0 3.5-2.5 6-6 6z"></path><path d="M12 14c0-3-2-5-5-5 0 3 2 5 5 5z"></path></svg>
+      </div>
+      <p style="margin: 0; background: #F1ECE3; border-radius: 18px 18px 18px 6px; padding: 13px 16px; font-size: 16px; line-height: 1.5; max-width: 290px">Which one area is affecting your life the most right now? Just one is fine.</p>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 28px">
+      <sc-for list="{{ areas }}" as="item" hint-placeholder-count="8">
+        <button type="button" onClick="{{ item.pick }}" style="min-height: 54px; padding: 10px 14px; text-align: left; border-radius: 14px; border: 1px solid {{item.bd}}; background: {{item.bg}}; color: {{item.fg}}; font-family: Inter, system-ui, sans-serif; font-size: 15px; font-weight: 500; line-height: 1.3; cursor: pointer">{{ item.label }}</button>
+      </sc-for>
+    </div>
+    <sc-if value="{{ isOther }}" hint-placeholder-val="{{ false }}">
+      <div style="margin-top: 14px">
+        <label for="other" style="display: block; font-size: 14px; font-weight: 500">In a word or two, what is it?</label>
+        <input id="other" type="text" placeholder="Loneliness" value="{{ other }}" onChange="{{ onOther }}" style="margin-top: 8px; width: 100%; box-sizing: border-box; height: 50px; border: 1px solid #D9D1C3; border-radius: 14px; background: #FFFFFF; padding: 0 16px; font-family: Inter, system-ui, sans-serif; font-size: 16px; color: #1E1C19">
+      </div>
+    </sc-if>
+    <div style="flex-grow: 1"></div>
+    <sc-if value="{{ hasErr }}" hint-placeholder-val="{{ false }}">
+      <p role="alert" style="margin: 0 0 10px; color: #A23B2A; font-size: 14px">{{ err }}</p>
+    </sc-if>
+    <button type="button" onClick="{{ areaNext }}" style="width: 100%; height: 54px; border: 0; border-radius: 16px; background: {{accent}}; color: #FFFFFF; font-family: Inter, system-ui, sans-serif; font-size: 16px; font-weight: 600; cursor: pointer">Continue</button>
+  </div>
+</sc-if>
+
+<sc-if value="{{ isStory }}" hint-placeholder-val="{{ false }}">
+  <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; box-sizing: border-box; display: flex; flex-direction: column; padding: 16px 24px 28px">
+    <div style="display: flex; align-items: center; gap: 12px; height: 44px">
+      <button type="button" aria-label="Back" onClick="{{ back }}" style="width: 44px; height: 44px; margin-left: -10px; border: 0; background: transparent; display: flex; align-items: center; justify-content: center; cursor: pointer">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1E1C19" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"></path></svg>
+      </button>
+      <div style="display: flex; gap: 6px; flex-grow: 1">
+        <sc-for list="{{ dots }}" as="d" hint-placeholder-count="4">
+          <div style="flex: 1; height: 4px; border-radius: 2px; background: {{d.bg}}"></div>
+        </sc-for>
+      </div>
+      <span style="font-size: 13px; color: #625C53">{{ progressText }}</span>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 20px">
+      <div style="display: flex; gap: 10px; align-items: flex-end">
+        <div style="width: 30px; flex-shrink: 0"></div>
+        <p style="margin: 0; background: #F1ECE3; border-radius: 18px 18px 18px 6px; padding: 13px 16px; font-size: 16px; line-height: 1.5; max-width: 290px">{{ storyAck }}</p>
+      </div>
+      <div style="display: flex; gap: 10px; align-items: flex-end">
+        <div style="width: 30px; height: 30px; border-radius: 50%; background: {{accent}}; display: flex; align-items: center; justify-content: center; flex-shrink: 0">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20v-8"></path><path d="M12 12c0-3.5 2.5-6 6-6 0 3.5-2.5 6-6 6z"></path><path d="M12 14c0-3-2-5-5-5 0 3 2 5 5 5z"></path></svg>
+        </div>
+        <p style="margin: 0; background: #F1ECE3; border-radius: 18px 18px 18px 6px; padding: 13px 16px; font-size: 16px; line-height: 1.5; max-width: 290px">{{ storyQ }}</p>
+      </div>
+    </div>
+    <sc-if value="{{ hasReasons }}" hint-placeholder-val="{{ true }}">
+      <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 22px">
+        <sc-for list="{{ reasons }}" as="item" hint-placeholder-count="5">
+          <button type="button" aria-pressed="{{ item.pressed }}" onClick="{{ item.pick }}" style="min-height: 44px; padding: 10px 14px; border-radius: 999px; border: 1px solid {{item.bd}}; background: {{item.bg}}; color: {{item.fg}}; font-family: Inter, system-ui, sans-serif; font-size: 15px; font-weight: 500; line-height: 1.3; text-align: left; cursor: pointer">{{ item.label }}</button>
+        </sc-for>
+      </div>
+    </sc-if>
+    <label for="story" style="display: block; margin-top: 22px; font-size: 14px; font-weight: 500; color: #3F3A33">{{ ownWordsLabel }}</label>
+    <textarea id="story" placeholder="Write it in your own words" value="{{ story }}" onChange="{{ onStory }}" style="margin-top: 8px; width: 100%; box-sizing: border-box; height: 96px; border: 1px solid #D9D1C3; border-radius: 16px; background: #FFFFFF; padding: 14px 16px; font-family: Inter, system-ui, sans-serif; font-size: 16px; line-height: 1.5; color: #1E1C19; resize: none"></textarea>
+    <p style="margin: 8px 0 0; font-size: 13px; color: #625C53">Prefer to talk? Tap the mic on your keyboard.</p>
+    <div style="flex-grow: 1"></div>
+    <sc-if value="{{ hasErr }}" hint-placeholder-val="{{ false }}">
+      <p role="alert" style="margin: 0 0 10px; color: #A23B2A; font-size: 14px">{{ err }}</p>
+    </sc-if>
+    <button type="button" onClick="{{ storyNext }}" style="width: 100%; height: 54px; border: 0; border-radius: 16px; background: {{accent}}; color: #FFFFFF; font-family: Inter, system-ui, sans-serif; font-size: 16px; font-weight: 600; cursor: pointer">Continue</button>
+  </div>
+</sc-if>
+
+<sc-if value="{{ isReassure }}" hint-placeholder-val="{{ false }}">
+  <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; box-sizing: border-box; display: flex; flex-direction: column; padding: 16px 24px 28px">
+    <div style="display: flex; align-items: center; gap: 12px; height: 44px">
+      <button type="button" aria-label="Back" onClick="{{ back }}" style="width: 44px; height: 44px; margin-left: -10px; border: 0; background: transparent; display: flex; align-items: center; justify-content: center; cursor: pointer">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1E1C19" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"></path></svg>
+      </button>
+      <div style="display: flex; gap: 6px; flex-grow: 1">
+        <sc-for list="{{ dots }}" as="d" hint-placeholder-count="4">
+          <div style="flex: 1; height: 4px; border-radius: 2px; background: {{d.bg}}"></div>
+        </sc-for>
+      </div>
+      <span style="font-size: 13px; color: #625C53">{{ progressText }}</span>
+    </div>
+    <div style="width: 56px; height: 56px; border-radius: 50%; background: #E3EBE4; display: flex; align-items: center; justify-content: center; margin-top: 28px">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#2F4A3B" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 14c1.5-1.5 3-3.2 3-5.5A5.5 5.5 0 0 0 12 5.3 5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4 3 5.5l7 7z"></path></svg>
+    </div>
+    <h1 style="margin: 22px 0 0; font-family: Newsreader, Georgia, serif; font-weight: 400; font-size: 32px; line-height: 1.15">{{ reassureTitle }}</h1>
+    <p style="margin: 14px 0 0; font-size: 17px; line-height: 1.55; color: #3F3A33">{{ reassureBody }}</p>
+    <div style="background: #FFFFFF; border: 1px solid #E3DCD0; border-radius: 20px; padding: 16px 18px; margin-top: 22px">
+      <p style="margin: 0; font-size: 13px; font-weight: 500; color: #625C53">What I heard</p>
+      <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 10px">
+        <sc-for list="{{ heard }}" as="h" hint-placeholder-count="2">
+          <div style="display: flex; gap: 10px; align-items: flex-start">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2F4A3B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0; margin-top: 3px"><path d="M5 12l5 5L20 7"></path></svg>
+            <span style="font-size: 15px; line-height: 1.45">{{ h.text }}</span>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+    <p style="margin: 18px 0 0; font-size: 15px; line-height: 1.5; color: #625C53">That’s all the questions for today.</p>
+    <div style="flex-grow: 1"></div>
+    <button type="button" onClick="{{ reassureNext }}" style="width: 100%; height: 54px; border: 0; border-radius: 16px; background: {{accent}}; color: #FFFFFF; font-family: Inter, system-ui, sans-serif; font-size: 16px; font-weight: 600; cursor: pointer">Okay, what’s next?</button>
+  </div>
+</sc-if>
+
+<sc-if value="{{ isTime }}" hint-placeholder-val="{{ false }}">
+  <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; box-sizing: border-box; display: flex; flex-direction: column; padding: 16px 24px 28px">
+    <div style="display: flex; align-items: center; gap: 12px; height: 44px">
+      <button type="button" aria-label="Back" onClick="{{ back }}" style="width: 44px; height: 44px; margin-left: -10px; border: 0; background: transparent; display: flex; align-items: center; justify-content: center; cursor: pointer">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1E1C19" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"></path></svg>
+      </button>
+      <div style="display: flex; gap: 6px; flex-grow: 1">
+        <sc-for list="{{ dots }}" as="d" hint-placeholder-count="4">
+          <div style="flex: 1; height: 4px; border-radius: 2px; background: {{d.bg}}"></div>
+        </sc-for>
+      </div>
+      <span style="font-size: 13px; color: #625C53">{{ progressText }}</span>
+    </div>
+    <div style="display: flex; gap: 10px; align-items: flex-end; margin-top: 24px">
+      <div style="width: 30px; height: 30px; border-radius: 50%; background: {{accent}}; display: flex; align-items: center; justify-content: center; flex-shrink: 0">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20v-8"></path><path d="M12 12c0-3.5 2.5-6 6-6 0 3.5-2.5 6-6 6z"></path><path d="M12 14c0-3-2-5-5-5 0 3 2 5 5 5z"></path></svg>
+      </div>
+      <p style="margin: 0; background: #F1ECE3; border-radius: 18px 18px 18px 6px; padding: 13px 16px; font-size: 16px; line-height: 1.5; max-width: 290px">Let me think about small things we can do together, {{ displayName }}. When’s a good time for a 10 to 15 minute chat?</p>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 28px">
+      <sc-for list="{{ slots }}" as="item" hint-placeholder-count="4">
+        <button type="button" onClick="{{ item.pick }}" style="height: 54px; display: flex; align-items: center; gap: 12px; padding: 0 16px; border-radius: 14px; border: 1px solid {{item.bd}}; background: {{item.bg}}; color: {{item.fg}}; font-family: Inter, system-ui, sans-serif; font-size: 16px; font-weight: 500; text-align: left; cursor: pointer">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3"></rect><path d="M3 10h18"></path><path d="M8 3v4"></path><path d="M16 3v4"></path></svg>
+          <span>{{ item.label }}</span>
+        </button>
+      </sc-for>
+    </div>
+    <div style="flex-grow: 1"></div>
+    <sc-if value="{{ hasErr }}" hint-placeholder-val="{{ false }}">
+      <p role="alert" style="margin: 0 0 10px; color: #A23B2A; font-size: 14px">{{ err }}</p>
+    </sc-if>
+    <button type="button" onClick="{{ timeNext }}" style="width: 100%; height: 54px; border: 0; border-radius: 16px; background: {{accent}}; color: #FFFFFF; font-family: Inter, system-ui, sans-serif; font-size: 16px; font-weight: 600; cursor: pointer">Book it</button>
+  </div>
+</sc-if>
+
+<sc-if value="{{ isSave }}" hint-placeholder-val="{{ false }}">
+  <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; box-sizing: border-box; display: flex; flex-direction: column; padding: 16px 24px 28px">
+    <div style="display: flex; align-items: center; height: 44px">
+      <button type="button" aria-label="Back" onClick="{{ back }}" style="width: 44px; height: 44px; margin-left: -10px; border: 0; background: transparent; display: flex; align-items: center; justify-content: center; cursor: pointer">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1E1C19" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"></path></svg>
+      </button>
+    </div>
+    <h1 style="margin: 24px 0 0; font-family: Newsreader, Georgia, serif; font-weight: 400; font-size: 32px; line-height: 1.15">{{ saveTitle }}</h1>
+    <p style="margin: 12px 0 0; font-size: 17px; line-height: 1.55; color: #625C53">{{ saveBody }}</p>
+    <label for="email" style="display: block; margin-top: 32px; font-size: 15px; font-weight: 500">Email</label>
+    <input id="email" type="email" autocomplete="email" placeholder="name@example.com" value="{{ email }}" onChange="{{ onEmail }}" style="margin-top: 10px; width: 100%; box-sizing: border-box; height: 54px; border: 1px solid #D9D1C3; border-radius: 14px; background: #FFFFFF; padding: 0 16px; font-family: Inter, system-ui, sans-serif; font-size: 17px; color: #1E1C19">
+    <p style="margin: 10px 0 0; font-size: 13px; line-height: 1.5; color: #625C53">{{ saveSmall }}</p>
+    <div style="flex-grow: 1"></div>
+    <sc-if value="{{ hasErr }}" hint-placeholder-val="{{ false }}">
+      <p role="alert" style="margin: 0 0 10px; color: #A23B2A; font-size: 14px">{{ err }}</p>
+    </sc-if>
+    <button type="button" onClick="{{ saveNext }}" style="width: 100%; height: 54px; border: 0; border-radius: 16px; background: {{accent}}; color: #FFFFFF; font-family: Inter, system-ui, sans-serif; font-size: 16px; font-weight: 600; cursor: pointer">{{ sendLabel }}</button>
+  </div>
+</sc-if>
+
+<sc-if value="{{ isCode }}" hint-placeholder-val="{{ false }}">
+  <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; box-sizing: border-box; display: flex; flex-direction: column; padding: 16px 24px 28px">
+    <div style="display: flex; align-items: center; height: 44px">
+      <button type="button" aria-label="Back" onClick="{{ back }}" style="width: 44px; height: 44px; margin-left: -10px; border: 0; background: transparent; display: flex; align-items: center; justify-content: center; cursor: pointer">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1E1C19" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"></path></svg>
+      </button>
+    </div>
+    <h1 style="margin: 24px 0 0; font-family: Newsreader, Georgia, serif; font-weight: 400; font-size: 32px; line-height: 1.15">Check your email</h1>
+    <p style="margin: 12px 0 0; font-size: 17px; line-height: 1.55; color: #625C53">Enter the 6-digit code I sent to {{ email }}.</p>
+    <label for="code" style="display: block; margin-top: 32px; font-size: 15px; font-weight: 500">Code</label>
+    <input id="code" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="482913" value="{{ code }}" onChange="{{ onCode }}" style="margin-top: 10px; width: 100%; box-sizing: border-box; height: 60px; border: 1px solid #D9D1C3; border-radius: 14px; background: #FFFFFF; padding: 0 16px; font-family: Inter, system-ui, sans-serif; font-size: 24px; letter-spacing: 0.3em; color: #1E1C19">
+    <p style="margin: 10px 0 0; font-size: 13px; color: #625C53">{{ codeNote }}</p>
+    <div style="flex-grow: 1"></div>
+    <sc-if value="{{ hasErr }}" hint-placeholder-val="{{ false }}">
+      <p role="alert" style="margin: 0 0 10px; color: #A23B2A; font-size: 14px">{{ err }}</p>
+    </sc-if>
+    <button type="button" onClick="{{ codeNext }}" style="width: 100%; height: 54px; border: 0; border-radius: 16px; background: {{accent}}; color: #FFFFFF; font-family: Inter, system-ui, sans-serif; font-size: 16px; font-weight: 600; cursor: pointer">{{ verifyLabel }}</button>
+    <button type="button" onClick="{{ resend }}" style="margin-top: 8px; width: 100%; height: 44px; border: 0; background: transparent; color: #3F3A33; font-family: Inter, system-ui, sans-serif; font-size: 15px; cursor: pointer">{{ resendLabel }}</button>
+  </div>
+</sc-if>
+
+<sc-if value="{{ isNotify }}" hint-placeholder-val="{{ false }}">
+  <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; box-sizing: border-box; display: flex; flex-direction: column; padding: 16px 24px 28px">
+    <div style="display: flex; align-items: center; height: 44px">
+      <button type="button" aria-label="Back" onClick="{{ back }}" style="width: 44px; height: 44px; margin-left: -10px; border: 0; background: transparent; display: flex; align-items: center; justify-content: center; cursor: pointer">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1E1C19" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"></path></svg>
+      </button>
+    </div>
+    <div style="width: 64px; height: 64px; border-radius: 50%; background: #E3EBE4; display: flex; align-items: center; justify-content: center; margin-top: 40px">
+      <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#2F4A3B" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"></path><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"></path></svg>
+    </div>
+    <h1 style="margin: 24px 0 0; font-family: Newsreader, Georgia, serif; font-weight: 400; font-size: 32px; line-height: 1.15">Can I reach you {{ slotLower }}?</h1>
+    <p style="margin: 12px 0 0; font-size: 17px; line-height: 1.55; color: #625C53">I’ll send you a message when it’s time for our chat. After that, I’ll only check in at times you choose, and you can change them anytime.</p>
+    <div style="flex-grow: 1"></div>
+    <button type="button" onClick="{{ askNotif }}" style="width: 100%; height: 54px; border: 0; border-radius: 16px; background: {{accent}}; color: #FFFFFF; font-family: Inter, system-ui, sans-serif; font-size: 16px; font-weight: 600; cursor: pointer">Allow notifications</button>
+    <button type="button" onClick="{{ deny }}" style="margin-top: 8px; width: 100%; height: 44px; border: 0; background: transparent; color: #3F3A33; font-family: Inter, system-ui, sans-serif; font-size: 15px; cursor: pointer">Not now, email me instead</button>
+  </div>
+  <sc-if value="{{ dialog }}" hint-placeholder-val="{{ false }}">
+    <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(30, 28, 25, 0.38); display: flex; align-items: center; justify-content: center">
+      <div role="dialog" aria-label="Notification permission" style="width: 270px; background: #FFFFFF; border-radius: 14px; overflow: hidden; text-align: center">
+        <div style="padding: 20px 16px 16px">
+          <p style="margin: 0; font-size: 17px; font-weight: 600; line-height: 1.3">“Life OS” Would Like to Send You Notifications</p>
+          <p style="margin: 8px 0 0; font-size: 13px; line-height: 1.4; color: #3F3A33">Notifications may include alerts, sounds and icon badges.</p>
+        </div>
+        <div style="display: flex; border-top: 1px solid #E3DCD0">
+          <button type="button" onClick="{{ deny }}" style="flex: 1; height: 46px; border: 0; border-right: 1px solid #E3DCD0; background: #FFFFFF; color: #35506E; font-family: Inter, system-ui, sans-serif; font-size: 17px; cursor: pointer">Don’t Allow</button>
+          <button type="button" onClick="{{ allow }}" style="flex: 1; height: 46px; border: 0; background: #FFFFFF; color: #35506E; font-family: Inter, system-ui, sans-serif; font-size: 17px; font-weight: 600; cursor: pointer">Allow</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+</sc-if>
+
+<sc-if value="{{ isToday }}" hint-placeholder-val="{{ false }}">
+  <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; box-sizing: border-box; display: flex; flex-direction: column">
+    <div style="flex-grow: 1; display: flex; flex-direction: column; padding: 28px 24px 0">
+      <p style="margin: 0; font-size: 14px; color: #625C53">{{ todayDate }}</p>
+      <h1 style="margin: 6px 0 0; font-family: Newsreader, Georgia, serif; font-weight: 400; font-size: 34px; line-height: 1.12">{{ greeting }}, {{ displayName }}</h1>
+
+      <div style="background: #FFFFFF; border: 1px solid #E3DCD0; border-radius: 20px; padding: 18px 18px 16px; margin-top: 24px">
+        <p style="margin: 0; font-size: 13px; font-weight: 500; color: #625C53">Where you are</p>
+        <div style="display: flex; align-items: center; gap: 14px; margin-top: 10px">
+          <div style="display: flex; align-items: baseline; gap: 4px">
+            <span style="font-family: Newsreader, Georgia, serif; font-size: 44px; line-height: 1">{{ score }}</span>
+            <span style="font-size: 14px; color: #625C53">/10</span>
+          </div>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#625C53" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"></path><path d="M13 6l6 6-6 6"></path></svg>
+          <div style="display: flex; align-items: baseline; gap: 4px">
+            <span style="font-family: Newsreader, Georgia, serif; font-size: 44px; line-height: 1; color: {{accent}}">{{ target }}</span>
+            <span style="font-size: 14px; color: #625C53">{{ targetNote }}</span>
+          </div>
+        </div>
+        <p style="margin: 12px 0 0; font-size: 14px; line-height: 1.5; color: #625C53">One step up, not all the way to 10. We’ll check in on this again in a few weeks.</p>
+      </div>
+
+      <div style="background: #FFFFFF; border: 1px solid #E3DCD0; border-radius: 20px; padding: 16px 18px; margin-top: 12px">
+        <p style="margin: 0; font-size: 13px; font-weight: 500; color: #625C53">Your focus</p>
+        <p style="margin: 6px 0 0; font-size: 18px; font-weight: 500">{{ areaLabel }}</p>
+        <sc-if value="{{ hasDetail }}" hint-placeholder-val="{{ false }}">
+          <p style="margin: 6px 0 0; font-size: 14px; line-height: 1.5; color: #625C53">{{ todaySaid }}</p>
+        </sc-if>
+      </div>
+
+      <div style="background: #E3EBE4; border-radius: 20px; padding: 16px 18px; margin-top: 12px">
+        <div style="display: flex; align-items: center; gap: 8px">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2F4A3B" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"></path></svg>
+          <p style="margin: 0; font-size: 13px; font-weight: 500; color: #2F4A3B">Our first chat</p>
+        </div>
+        <p style="margin: 6px 0 0; font-size: 18px; font-weight: 500; color: #1F3328">{{ slotLabel }}</p>
+        <p style="margin: 4px 0 0; font-size: 14px; line-height: 1.5; color: #2F4A3B">{{ chatNote }}</p>
+      </div>
+
+      <p style="margin: 20px 0 0; font-size: 15px; line-height: 1.5; color: #625C53; text-align: center">Nothing else to do today. Rest is part of it too.</p>
+
+      <div style="flex-grow: 1"></div>
+      <div style="display: flex; justify-content: center; gap: 8px; padding-bottom: 8px">
+        <button type="button" onClick="{{ showPreview }}" style="height: 44px; padding: 0 14px; border: 1px solid #D9D1C3; border-radius: 999px; background: transparent; color: #3F3A33; font-family: Inter, system-ui, sans-serif; font-size: 14px; cursor: pointer">Preview the reminder</button>
+        <button type="button" onClick="{{ restart }}" style="height: 44px; padding: 0 14px; border: 0; border-radius: 999px; background: transparent; color: #625C53; font-family: Inter, system-ui, sans-serif; font-size: 14px; cursor: pointer">Start over</button>
+      </div>
+    </div>
+    <nav aria-label="Main" style="display: flex; justify-content: space-around; border-top: 1px solid #E3DCD0; background: #FAF8F4; padding: 6px 12px 22px">
+      <button type="button" aria-current="page" style="width: 88px; height: 52px; border: 0; background: transparent; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; color: {{accent}}; font-family: Inter, system-ui, sans-serif; font-size: 12px; font-weight: 600; cursor: pointer">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2"></path><path d="M12 20v2"></path><path d="M4.9 4.9l1.4 1.4"></path><path d="M17.7 17.7l1.4 1.4"></path><path d="M2 12h2"></path><path d="M20 12h2"></path><path d="M4.9 19.1l1.4-1.4"></path><path d="M17.7 6.3l1.4-1.4"></path></svg>
+        <span>Today</span>
+      </button>
+      <button type="button" style="width: 88px; height: 52px; border: 0; background: transparent; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; color: #625C53; font-family: Inter, system-ui, sans-serif; font-size: 12px; cursor: pointer">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"></path></svg>
+        <span>Coach</span>
+      </button>
+      <button type="button" style="width: 88px; height: 52px; border: 0; background: transparent; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; color: #625C53; font-family: Inter, system-ui, sans-serif; font-size: 12px; cursor: pointer">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V10"></path><path d="M10 20V4"></path><path d="M16 20v-7"></path><path d="M22 20H2"></path></svg>
+        <span>Week</span>
+      </button>
+    </nav>
+  </div>
+</sc-if>
+
+<sc-if value="{{ isPreview }}" hint-placeholder-val="{{ false }}">
+  <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; box-sizing: border-box; display: flex; flex-direction: column; padding: 16px 24px 28px; background: #2A2723">
+    <div style="display: flex; align-items: center; height: 44px">
+      <button type="button" aria-label="Back to Today" onClick="{{ backToday }}" style="width: 44px; height: 44px; margin-left: -10px; border: 0; background: transparent; display: flex; align-items: center; justify-content: center; cursor: pointer">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#FAF8F4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"></path></svg>
+      </button>
+    </div>
+    <p style="margin: 40px 0 0; text-align: center; font-size: 15px; color: #D9D1C3">{{ slotDay }}</p>
+    <p style="margin: 4px 0 0; text-align: center; font-family: Newsreader, Georgia, serif; font-size: 80px; line-height: 1; color: #FAF8F4">{{ slotClock }}</p>
+    <div style="background: #FAF8F4; border-radius: 20px; padding: 14px 16px; margin-top: 48px">
+      <div style="display: flex; align-items: center; gap: 8px">
+        <div style="width: 22px; height: 22px; border-radius: 6px; background: {{accent}}; display: flex; align-items: center; justify-content: center">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20v-8"></path><path d="M12 12c0-3.5 2.5-6 6-6 0 3.5-2.5 6-6 6z"></path><path d="M12 14c0-3-2-5-5-5 0 3 2 5 5 5z"></path></svg>
+        </div>
+        <span style="font-size: 13px; font-weight: 600; letter-spacing: 0.02em">LIFE OS</span>
+        <span style="margin-left: auto; font-size: 13px; color: #625C53">now</span>
+      </div>
+      <p style="margin: 8px 0 0; font-size: 15px; font-weight: 600">Ready when you are</p>
+      <p style="margin: 2px 0 0; font-size: 15px; line-height: 1.45">{{ previewText }}</p>
+    </div>
+    <div style="flex-grow: 1"></div>
+    <p style="margin: 0; text-align: center; font-size: 14px; line-height: 1.5; color: #D9D1C3">The real message is written by the coach from what you shared, so no two people get the same one.</p>
+    <button type="button" onClick="{{ backToday }}" style="margin-top: 16px; width: 100%; height: 54px; border: 0; border-radius: 16px; background: #FAF8F4; color: #1E1C19; font-family: Inter, system-ui, sans-serif; font-size: 16px; font-weight: 600; cursor: pointer">Back to Today</button>
+  </div>
+</sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#3D5F4C","options":["#3D5F4C","#7A5434","#35506E","#1E1C19"]},"onDone":{"editor":null},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = this.initial();
+  }
+  initial() {
+    return { step: 'welcome', name: '', score: 0, area: '', other: '', reasons: [], story: '', slot: '', email: '', code: '', err: '', dialog: false, notif: false, busy: false, returning: false, resent: false };
+  }
+  go(step) {
+    this.setState({ step: step, err: '', dialog: false });
+  }
+  renderVals() {
+    var self = this;
+    var s = this.state;
+    if (window.LIFEOS_HOOK) { window.LIFEOS_HOOK.appStep = s.step; }
+    var accent = this.props.accent ?? '#3D5F4C';
+    var name = (s.name || '').trim();
+    var displayName = name || 'friend';
+
+    var areaDefs = [
+      { id: 'mind', label: 'Mind and mood', q: 'What has it been like for you lately?',
+        opts: ['I feel low most days', 'I worry or overthink a lot', 'I feel numb or flat', 'I’m stressed and stretched thin', 'I feel alone with it'] },
+      { id: 'body', label: 'Body and health', q: 'What has been getting in the way?',
+        opts: ['I’m unhappy with my physical shape', 'I have no energy to do anything', 'I have no control over my diet', 'I have a health issue', 'I start, then I stop'] },
+      { id: 'work', label: 'Work and career', q: 'What feels stuck right now?',
+        opts: ['I’m not growing in my role', 'I don’t know what’s next', 'My job search isn’t working', 'I’m burnt out', 'I’m not paid what I’m worth'] },
+      { id: 'money', label: 'Money', q: 'What has been weighing on you most?',
+        opts: ['Debt or loans', 'No savings to fall back on', 'Spending gets away from me', 'My income isn’t enough', 'Money stress at home'] },
+      { id: 'rel', label: 'Relationships', q: 'What has been happening?',
+        opts: ['Conflict with family', 'Things with my partner', 'I feel lonely', 'I’ve lost touch with friends', 'It’s hard to open up'] },
+      { id: 'dir', label: 'Direction and purpose', q: 'What makes it feel unclear right now?',
+        opts: ['I don’t know what I want', 'I feel behind others', 'Too many options, no clarity', 'I’ve lost my sense of purpose', 'Every day feels the same'] },
+      { id: 'sleep', label: 'Sleep and energy', q: 'What has been happening with your sleep and energy?',
+        opts: ['I can’t fall asleep', 'I wake up tired', 'My phone keeps me up', 'My schedule is all over the place', 'I’m tired all day'] },
+      { id: 'other', label: 'Something else', q: 'Tell me a little more. What has been happening?',
+        opts: ['It’s been building for a while', 'Something changed recently', 'It’s hard to explain'] }
+    ];
+    var areaObj = null;
+    for (var i = 0; i < areaDefs.length; i++) { if (areaDefs[i].id === s.area) { areaObj = areaDefs[i]; } }
+    var areaLabel = s.area === 'other' ? ((s.other || '').trim() || 'Something else') : (areaObj ? areaObj.label : '');
+
+    var score = s.score || 0;
+    var target = Math.min(score + 1, 10);
+    var band = score <= 4 ? 'low' : (score <= 7 ? 'mid' : 'high');
+    var scoreTitle = '';
+    var scoreBody = '';
+    if (band === 'low') {
+      scoreTitle = 'Thank you for being honest.';
+      scoreBody = 'A ' + score + ' means things have been heavy for a while. We won’t aim for 10. Let’s aim for ' + target + ', and go from there.';
+    } else if (band === 'mid') {
+      scoreTitle = 'Somewhere in the middle.';
+      scoreBody = 'Some things are working, some aren’t. Let’s find the one thing that would move you to a ' + target + '.';
+    } else {
+      scoreTitle = 'That’s a good place to be.';
+      scoreBody = score === 10 ? 'Let’s make it stick, and keep growing from here.' : 'Let’s make it stick, and see what a ' + target + ' could look like.';
+    }
+
+    var picked = s.reasons || [];
+    var words = (s.story || '').trim().split(/\s+/).filter(function (w) { return w.length > 0; });
+    var hasText = words.length > 0;
+    var snippet = words.slice(0, 9).join(' ') + (words.length > 9 ? '…' : '');
+    var hasDetail = hasText || picked.length > 0;
+
+    function chosen(on) {
+      return on
+        ? { bg: accent, fg: '#FFFFFF', bd: accent }
+        : { bg: '#FFFFFF', fg: '#1E1C19', bd: '#E3DCD0' };
+    }
+
+    var reasons = (areaObj ? areaObj.opts : []).map(function (label) {
+      var on = picked.indexOf(label) !== -1;
+      var c = chosen(on);
+      return {
+        label: label, pressed: on ? 'true' : 'false', bg: c.bg, fg: c.fg, bd: c.bd,
+        pick: function () {
+          var next = (self.state.reasons || []).slice();
+          var at = next.indexOf(label);
+          if (at === -1) { next.push(label); } else { next.splice(at, 1); }
+          self.setState({ reasons: next, err: '' });
+        }
+      };
+    });
+
+    var reassureTitle = band === 'low'
+      ? 'You’re not behind. You’re starting.'
+      : (band === 'mid' ? 'This is a good place to start from.' : 'Let’s build on what’s working.');
+    var areaLower = areaLabel.toLowerCase();
+    var reassureBody = band === 'low'
+      ? 'Thank you for sharing this, ' + displayName + '. Feeling this way is more common than it looks from the outside, and it can change. We won’t try to fix everything at once. One small step, then the next, and I’ll be with you for each one.'
+      : (band === 'mid'
+        ? 'Thank you, ' + displayName + '. Small, steady changes in ' + areaLower + ' tend to move the whole score more than you’d expect. We’ll keep it simple and go at your pace.'
+        : 'Thank you, ' + displayName + '. Even when life is going well, ' + areaLower + ' can quietly hold you back. We’ll make small changes that fit around what already works.');
+
+    var heard = [{ text: 'Focus: ' + areaLabel }];
+    picked.forEach(function (p) { heard.push({ text: p }); });
+    if (hasText) { heard.push({ text: 'In your words: “' + snippet + '”' }); }
+
+    var todaySaid = hasText ? 'You said: “' + snippet + '”' : (picked.length ? 'You mentioned: ' + picked.join(', ') : '');
+
+    var R = window.LIFEOS_REAL || null;
+    var slotDefs = (R && R.onbSlots) ? R.onbSlots() : [
+      { id: 't1', label: 'Today, 7:30 pm', lower: 'today at 7:30 pm', day: 'Today', clock: '7:30' },
+      { id: 't2', label: 'Today, 9:00 pm', lower: 'today at 9:00 pm', day: 'Today', clock: '9:00' },
+      { id: 'm1', label: 'Tomorrow, 8:00 am', lower: 'tomorrow at 8:00 am', day: 'Tomorrow', clock: '8:00' },
+      { id: 'm2', label: 'Tomorrow, 7:30 pm', lower: 'tomorrow at 7:30 pm', day: 'Tomorrow', clock: '7:30' }
+    ];
+    var slotObj = null;
+    for (var j = 0; j < slotDefs.length; j++) { if (slotDefs[j].id === s.slot) { slotObj = slotDefs[j]; } }
+
+    var scores = [];
+    for (var n = 1; n <= 10; n++) {
+      (function (k) {
+        var c = chosen(s.score === k);
+        scores.push({ n: k, aria: k + ' out of 10', bg: c.bg, fg: c.fg, bd: c.bd, pick: function () { self.setState({ score: k, err: '' }); } });
+      })(n);
+    }
+    var areas = areaDefs.map(function (a) {
+      var c = chosen(s.area === a.id);
+      return { label: a.label, bg: c.bg, fg: c.fg, bd: c.bd, pick: function () {
+        if (self.state.area !== a.id) { self.setState({ area: a.id, reasons: [], err: '' }); }
+      } };
+    });
+    var slots = slotDefs.map(function (t) {
+      var c = chosen(s.slot === t.id);
+      return { label: t.label, bg: c.bg, fg: c.fg, bd: c.bd, pick: function () { self.setState({ slot: t.id, err: '' }); } };
+    });
+
+    var stepIndex = { score: 1, reflect: 1, area: 2, story: 3, reassure: 3, time: 4 };
+    var idx = stepIndex[s.step] || 0;
+    var dots = [1, 2, 3, 4].map(function (d) { return { bg: d <= idx ? accent : '#E3DCD0' }; });
+
+    var prev = { score: 'welcome', reflect: 'score', area: 'reflect', story: 'area', reassure: 'story', time: 'reassure', save: s.returning ? 'welcome' : 'time', code: 'save', notify: (R && R.signedIn && R.signedIn() && s.step === 'notify') ? 'time' : 'code' };
+    var fail = function (e) { self.setState({ busy: false, err: (e && e.message) || 'Something went wrong. Check your connection and try again.' }); };
+
+    var now = new Date();
+    var hour = now.getHours();
+    var greeting = hour < 12 ? 'Good morning' : (hour < 17 ? 'Good afternoon' : 'Good evening');
+    var todayDate = now.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' });
+
+    var chatNote = s.notif
+      ? '10 to 15 minutes. I’ll send you a message when it’s time.'
+      : 'Notifications are off, so I’ll email ' + (s.email || 'you') + ' when it’s time.';
+    var previewText = 'Hi ' + displayName + ', it’s time for our chat. ' + (hasText
+      ? 'Earlier you said “' + snippet + '” Let’s start there, gently.'
+      : (picked.length
+        ? 'You mentioned “' + picked[0] + '”. Let’s start there, gently.'
+        : 'Let’s talk about ' + areaLower + ', one small step at a time.'));
+
+    var saveOnb = function (pushOn) {
+      var st = self.state;
+      var s4 = (st.reasons || []).slice();
+      if ((st.story || '').trim()) { s4.push(st.story.trim()); }
+      var data = { name: (st.name || '').trim(), score: st.score, area: st.area, other: (st.other || '').trim(), s4: s4, slot: slotObj ? slotObj.label : 'Today, 7:30 pm', at: Date.now(), email: (st.email || '').trim(), push: !!pushOn };
+      try { window.localStorage.setItem('lifeos_onb', JSON.stringify(data)); } catch (e) {}
+      if (typeof self.props.onDone === 'function') { self.props.onDone(data); return true; }
+      return false;
+    };
+    return {
+      accent: accent,
+      isWelcome: s.step === 'welcome',
+      isScore: s.step === 'score',
+      isReflect: s.step === 'reflect',
+      isArea: s.step === 'area',
+      isStory: s.step === 'story',
+      isReassure: s.step === 'reassure',
+      isTime: s.step === 'time',
+      isSave: s.step === 'save',
+      isCode: s.step === 'code',
+      isNotify: s.step === 'notify',
+      isToday: s.step === 'today',
+      isPreview: s.step === 'preview',
+      dialog: s.dialog,
+      name: s.name,
+      displayName: displayName,
+      score: score,
+      target: target,
+      targetNote: score === 10 ? 'keep it' : 'next stop',
+      scoreTitle: scoreTitle,
+      scoreBody: scoreBody,
+      scores: scores,
+      areas: areas,
+      isOther: s.area === 'other',
+      other: s.other,
+      areaLabel: areaLabel,
+      storyAck: areaLabel ? 'Okay, ' + areaLower + '. That’s a good place to start.' : '',
+      storyQ: areaObj ? areaObj.q + ' Tap any that fit.' : '',
+      reasons: reasons,
+      hasReasons: reasons.length > 0,
+      ownWordsLabel: 'Or say it in your own words',
+      story: s.story,
+      hasDetail: hasDetail,
+      todaySaid: todaySaid,
+      reassureTitle: reassureTitle,
+      reassureBody: reassureBody,
+      heard: heard,
+      slots: slots,
+      slotLabel: slotObj ? slotObj.label : '',
+      slotLower: slotObj ? slotObj.lower : '',
+      slotDay: slotObj ? slotObj.day : '',
+      slotClock: slotObj ? slotObj.clock : '',
+      email: s.email,
+      code: s.code,
+      isReal: !!R,
+      saveTitle: s.returning ? 'Welcome back' : 'Save your progress',
+      saveBody: s.returning ? 'Enter the email you used before. I’ll send you a 6-digit code.' : 'So nothing you’ve shared is lost. I’ll email you a 6-digit code. No passwords to remember.',
+      saveSmall: R ? 'We’ll never share your email or send you marketing. Your answers are stored securely in India, and an AI helps me write my messages. You can download or delete everything anytime.' : 'We’ll never share your email or send you marketing.',
+      sendLabel: s.busy ? 'Sending…' : 'Send code',
+      verifyLabel: s.busy ? 'Checking…' : 'Verify',
+      resendLabel: s.resent ? 'Sent again. Check spam too' : 'Resend code',
+      codeNote: R ? 'It can take a minute to arrive. Check your spam folder too.' : 'This preview doesn’t send real emails. Use 482913, or any 6 digits.',
+      chatNote: chatNote,
+      previewText: previewText,
+      greeting: greeting,
+      todayDate: todayDate,
+      dots: dots,
+      progressText: idx + ' of 4',
+      hasErr: !!s.err,
+      err: s.err,
+      onName: function (e) { self.setState({ name: e.target.value, err: '' }); },
+      onOther: function (e) { self.setState({ other: e.target.value, err: '' }); },
+      onStory: function (e) { self.setState({ story: e.target.value, err: '' }); },
+      onEmail: function (e) { self.setState({ email: e.target.value, err: '' }); },
+      onCode: function (e) { self.setState({ code: e.target.value.replace(/\D/g, '').slice(0, 6), err: '' }); },
+      back: function () { if (prev[s.step]) { self.go(prev[s.step]); } },
+      welcomeNext: function () { if (!name) { self.setState({ err: 'Tell me your name, or a nickname, so I know what to call you.' }); } else { self.go('score'); } },
+      scoreNext: function () { if (!s.score) { self.setState({ err: 'Pick a number first.' }); } else { self.go('reflect'); } },
+      reflectNext: function () { self.go('area'); },
+      areaNext: function () {
+        if (!s.area) { self.setState({ err: 'Choose one area first.' }); return; }
+        if (s.area === 'other' && !(s.other || '').trim()) { self.setState({ err: 'Write a word or two about it.' }); return; }
+        self.go('story');
+      },
+      storyNext: function () { if (!hasDetail) { self.setState({ err: 'Tap one that fits, or write a few words.' }); } else { self.go('reassure'); } },
+      reassureNext: function () { self.go('time'); },
+      timeNext: function () { if (!s.slot) { self.setState({ err: 'Pick a time that suits you.' }); } else { self.go((R && R.signedIn && R.signedIn()) ? 'notify' : 'save'); } },
+      saveNext: function () {
+        if (!/\S+@\S+\.\S+/.test(s.email || '')) { self.setState({ err: 'Enter your email so I can save your progress.' }); return; }
+        if (!R) { self.go('code'); return; }
+        if (s.busy) { return; }
+        self.setState({ busy: true, err: '' });
+        R.sendCode(s.email.trim()).then(function () { self.setState({ busy: false, code: '', step: 'code', err: '' }); }, fail);
+      },
+      codeNext: function () {
+        if (!/^\d{6}$/.test(s.code || '')) { self.setState({ err: 'Enter the 6 digits from the email.' }); return; }
+        if (!R) { self.go('notify'); return; }
+        if (s.busy) { return; }
+        self.setState({ busy: true, err: '' });
+        R.verify(s.email.trim(), s.code).then(function (res) {
+          if (res && res.restored) { return; }
+          if (self.state.returning) { self.setState({ busy: false, returning: false, step: 'welcome', err: 'I couldn’t find an earlier start with this email, so let’s begin here.' }); return; }
+          self.setState({ busy: false, step: 'notify', err: '' });
+        }, fail);
+      },
+      resend: function () {
+        if (!R) { return; }
+        if (s.busy) { return; }
+        self.setState({ busy: true, err: '' });
+        R.sendCode(s.email.trim()).then(function () { self.setState({ busy: false, resent: true }); }, fail);
+      },
+      signIn: function () { self.setState({ returning: true, step: 'save', err: '' }); },
+      askNotif: function () {
+        if (!R) { self.setState({ dialog: true }); return; }
+        if (s.busy) { return; }
+        self.setState({ busy: true, err: '' });
+        R.enablePush().then(function (ok) {
+          self.setState({ busy: false });
+          if (saveOnb(ok)) { return; }
+          self.setState({ notif: ok, dialog: false, step: 'today', err: '' });
+        }, function () { self.setState({ busy: false }); if (saveOnb(false)) { return; } self.setState({ notif: false, step: 'today' }); });
+      },
+      allow: function () { if (saveOnb(true)) { return; } self.setState({ notif: true, dialog: false, step: 'today', err: '' }); },
+      deny: function () { if (saveOnb(false)) { return; } self.setState({ notif: false, dialog: false, step: 'today', err: '' }); },
+      showPreview: function () { self.go('preview'); },
+      backToday: function () { self.go('today'); },
+      restart: function () { self.setState(self.initial()); }
+    };
+  }
+}
+</script>
+</body>
+</html>

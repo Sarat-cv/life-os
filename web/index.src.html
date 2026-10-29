@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Life OS</title>
+<meta name="description" content="A personal life buddy that learns your story and checks in with you, gently, at times that suit you.">
+<meta name="theme-color" content="#FAF8F4">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Life OS">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root { --bg: #FAF8F4; --ink: #1E1C19; --muted: #625C53; --line: #E3DCD0; --card: #FFFFFF; --accent: #3D5F4C; --soft: #E3EBE4; --vh: 100dvh; }
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+[hidden] { display: none !important; }
+html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink); font-family: Inter, system-ui, sans-serif; overscroll-behavior: none; }
+body { -webkit-text-size-adjust: 100%; }
+button, input, textarea { font-family: inherit; }
+input, textarea { font-size: 16px !important; } /* stops iPhone zooming into fields */
+#root { position: fixed; left: 0; right: 0; top: 0; height: var(--vh); padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom); background: var(--bg); }
+#app { position: relative; width: 100%; height: 100%; overflow: hidden; }
+@media (min-width: 520px) {
+  body { background: #EFEAE1; }
+  #root { left: 50%; width: 430px; margin-left: -215px; top: 24px; height: min(900px, calc(100vh - 48px)); padding: 0; border-radius: 28px; overflow: hidden; box-shadow: 0 0 0 1px #D9D1C3; }
+}
+.overlay { position: fixed; inset: 0; z-index: 50; display: none; background: var(--bg); overflow-y: auto; }
+.overlay.on { display: block; }
+.sheet-bg { position: fixed; inset: 0; z-index: 60; display: none; align-items: flex-end; justify-content: center; background: rgba(30, 28, 25, 0.4); }
+.sheet-bg.on { display: flex; }
+.sheet { width: 100%; max-width: 460px; max-height: 92vh; overflow: auto; background: var(--card); border-radius: 22px 22px 0 0; padding: 22px 20px calc(20px + env(safe-area-inset-bottom)); }
+@media (min-width: 520px) { .sheet-bg { align-items: center; } .sheet { border-radius: 22px; } }
+.sheet h2 { margin: 0 0 6px; font-family: Newsreader, Georgia, serif; font-weight: 400; font-size: 26px; }
+.sheet p { margin: 0 0 12px; font-size: 15px; line-height: 1.5; color: var(--muted); }
+.sheet label { display: block; margin: 8px 0 6px; font-size: 14px; font-weight: 600; }
+.sheet textarea { width: 100%; min-height: 110px; border: 1px solid #D9D1C3; border-radius: 12px; padding: 12px; color: var(--ink); background: var(--bg); resize: vertical; }
+.btn { display: flex; align-items: center; justify-content: center; width: 100%; min-height: 50px; margin-top: 8px; padding: 0 16px; border-radius: 14px; border: 1px solid #D9D1C3; background: var(--card); color: var(--ink); font-size: 16px; font-weight: 500; text-decoration: none; cursor: pointer; }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+.btn.danger { color: #A23B2A; }
+.btn.quiet { border: 0; background: transparent; color: #3F3A33; font-size: 15px; min-height: 44px; }
+.err { margin: 8px 0 0; color: #A23B2A; font-size: 14px; min-height: 18px; }
+.who { font-size: 13px; color: var(--muted); margin: 0 0 14px; }
+.land { max-width: 460px; min-height: 100%; margin: 0 auto; display: flex; flex-direction: column; padding: calc(48px + env(safe-area-inset-top)) 24px calc(28px + env(safe-area-inset-bottom)); }
+.land h1 { margin: 24px 0 0; font-family: Newsreader, Georgia, serif; font-weight: 400; font-size: 40px; line-height: 1.08; letter-spacing: -0.01em; }
+.land .lead { margin: 14px 0 0; font-size: 17px; line-height: 1.55; color: var(--muted); }
+.logo { width: 56px; height: 56px; border-radius: 16px; background: var(--accent); display: flex; align-items: center; justify-content: center; }
+.ticks { margin: 28px 0 0; padding: 0; list-style: none; display: grid; gap: 12px; }
+.ticks li { display: flex; gap: 12px; align-items: center; font-size: 16px; }
+.ticks li span.t { width: 28px; height: 28px; border-radius: 50%; background: var(--soft); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.steps { margin: 24px 0 0; padding: 0; list-style: none; display: grid; gap: 12px; }
+.steps li { display: flex; gap: 14px; align-items: flex-start; background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 14px 16px; }
+.steps .n { width: 28px; height: 28px; border-radius: 50%; background: var(--accent); color: #fff; font-size: 14px; font-weight: 600; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.steps b { display: block; font-size: 16px; font-weight: 600; }
+.steps small { display: block; margin-top: 2px; font-size: 14px; color: var(--muted); }
+.hint { margin: 14px 0 0; padding: 12px 14px; border-radius: 14px; background: #F1ECE3; font-size: 14px; line-height: 1.5; color: #3F3A33; }
+.grow { flex-grow: 1; min-height: 24px; }
+.fine { margin: 14px 0 0; font-size: 13px; line-height: 1.5; color: var(--muted); text-align: center; }
+.boot { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 15px; }
+</style>
+</head>
+<body>
+<div id="root"><div id="app"><div class="boot" id="boot">Opening Life OS…</div></div></div>
+
+<!-- Shown in iPhone Safari until Life OS is added to the Home Screen -->
+<div class="overlay" id="landing" role="dialog" aria-modal="true" aria-labelledby="landTitle">
+  <div class="land" id="landA">
+    <div class="logo"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20v-8"></path><path d="M12 12c0-3.5 2.5-6 6-6 0 3.5-2.5 6-6 6z"></path><path d="M12 14c0-3-2-5-5-5 0 3 2 5 5 5z"></path></svg></div>
+    <h1 id="landTitle">A little better,<br>every day.</h1>
+    <p class="lead">A personal life buddy that learns your story and checks in with you, gently, at times that suit you.</p>
+    <ul class="ticks">
+      <li><span class="t"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#2F4A3B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg></span>Built around your life, not a template</li>
+      <li><span class="t"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#2F4A3B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg></span>Small steps, not big promises</li>
+      <li><span class="t"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#2F4A3B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg></span>Private. Only you see what you share</li>
+    </ul>
+    <div class="grow"></div>
+    <button type="button" class="btn primary" id="landStart">Get started</button>
+    <p class="fine">Free during the pilot. Life OS is a coach, not a substitute for medical or mental health care.</p>
+  </div>
+  <div class="land" id="landB" hidden>
+    <h1 style="margin-top: 0; font-size: 34px">Add Life OS to your Home Screen</h1>
+    <p class="lead">It takes about 20 seconds. No App Store, nothing to pay.</p>
+    <ol class="steps">
+      <li><span class="n">1</span><span><b>Tap the Share button</b><small>The square with an arrow, at the bottom of Safari</small></span></li>
+      <li><span class="n">2</span><span><b>Choose “Add to Home Screen”</b><small>Scroll down the list if you don’t see it</small></span></li>
+      <li><span class="n">3</span><span><b>Tap Add, then open Life OS</b><small>It sits on your Home Screen like any app</small></span></li>
+    </ol>
+    <p class="hint">Opened this from WhatsApp or Instagram? Tap the ••• menu and choose <b>Open in Safari</b> first.</p>
+    <p class="hint">My check-in messages only reach you once Life OS is on your Home Screen.</p>
+    <div class="grow"></div>
+    <button type="button" class="btn quiet" id="landSkip">Continue in Safari for now</button>
+  </div>
+</div>
+
+<!-- Menu: report a problem, download or delete my story, sign out -->
+<div class="sheet-bg" id="menu" role="dialog" aria-modal="true" aria-labelledby="menuTitle">
+  <div class="sheet">
+    <div id="menuMain">
+      <h2 id="menuTitle">Life OS</h2>
+      <p class="who" id="menuWho"></p>
+      <button type="button" class="btn" id="mBug">Report a problem</button>
+      <button type="button" class="btn" id="mExport">Download my story</button>
+      <button type="button" class="btn" id="mSignOut">Sign out</button>
+      <button type="button" class="btn danger" id="mDelete">Delete everything</button>
+      <p class="err" id="menuMsg" role="status"></p>
+      <button type="button" class="btn quiet" id="mClose">Close</button>
+    </div>
+    <div id="menuBug" hidden>
+      <h2>Report a problem</h2>
+      <p>What went wrong, or felt off? A sentence is enough. I’ll note which screen you were on.</p>
+      <label for="bugText">What happened</label>
+      <textarea id="bugText" placeholder="It asked me about work, but I picked sleep"></textarea>
+      <p class="err" id="bugErr" role="alert"></p>
+      <button type="button" class="btn primary" id="bugSend">Send</button>
+      <button type="button" class="btn quiet" id="bugBack">Back</button>
+    </div>
+    <div id="menuDel" hidden>
+      <h2>Delete everything?</h2>
+      <p>This removes your account, your story and every chat, for good. It can’t be undone.</p>
+      <p class="err" id="delErr" role="alert"></p>
+      <button type="button" class="btn danger" id="delYes">Yes, delete everything</button>
+      <button type="button" class="btn quiet" id="delNo">Keep my story</button>
+    </div>
+  </div>
+</div>
+
+<!--TEMPLATES-->
+
+<script src="config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4"></script>
+<script src="runtime.js"></script>
+
+<!--COMPONENTS-->
+
+<script src="app.js"></script>
+</body>
+</html>
