@@ -36,11 +36,29 @@ jobs:
       - name: Fill in the project address for the scheduler
         run: sed -i "s/__PROJECT_REF__/${PROJECT_REF}/g" supabase/migrations/*.sql
       - name: Link the Supabase project
-        run: supabase link --project-ref "$PROJECT_REF" -p "$SUPABASE_DB_PASSWORD"
+        run: |
+          set +e
+          supabase link --project-ref "$PROJECT_REF" -p "$SUPABASE_DB_PASSWORD" > out.log 2>&1
+          code=$?
+          cat out.log
+          if [ $code -ne 0 ]; then tail -n 25 out.log | sed 's/^/::error::/'; fi
+          exit $code
       - name: Apply database changes
-        run: supabase db push -p "$SUPABASE_DB_PASSWORD"
+        run: |
+          set +e
+          supabase db push --include-all --yes -p "$SUPABASE_DB_PASSWORD" > out.log 2>&1
+          code=$?
+          cat out.log
+          if [ $code -ne 0 ]; then tail -n 25 out.log | sed 's/^/::error::/'; fi
+          exit $code
       - name: Deploy backend functions
-        run: supabase functions deploy --project-ref "$PROJECT_REF"
+        run: |
+          set +e
+          supabase functions deploy --project-ref "$PROJECT_REF" --use-api > out.log 2>&1
+          code=$?
+          cat out.log
+          if [ $code -ne 0 ]; then tail -n 25 out.log | sed 's/^/::error::/'; fi
+          exit $code
 
   web:
     runs-on: ubuntu-latest
