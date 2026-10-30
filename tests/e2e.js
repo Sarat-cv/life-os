@@ -45,7 +45,7 @@ const IPHONE = 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebK
   const db = () => p.evaluate(() => JSON.parse(localStorage.getItem('__mockdb') || '{}'));
 
   // 1. Safari landing
-  await p.goto(base + '?test=1');
+  await p.goto(base);
   await p.waitForTimeout(300);
   ok(await p.locator('#landing').isVisible(), 'iPhone Safari shows the landing page first');
   await p.click('#landStart');
@@ -77,8 +77,8 @@ const IPHONE = 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebK
   let d = await db();
   const prof = (d.profiles || [])[0] || {};
   ok(prof.name === 'Asha' && prof.email === 'asha@example.com' && prof.next_chat_n === 2 && !!prof.next_chat_at, 'profile saved with the chat 2 time: ' + prof.next_chat_at);
-  ok(Math.abs(Date.parse(prof.next_chat_at) - Date.now()) < 4 * 60000, 'test mode: chat time is about 3 minutes away');
 
+  const makeDue = async () => { await p.evaluate(() => { const c = window.LIFEOS_APP; const k = c.lockKey(c.state.conv); c.whenFor = null; const R = window.LIFEOS_REAL; R.whenFor(c.state.a, k); c.state.a[k + '@'].iso = new Date(Date.now() - 60000).toISOString(); c.forceUpdate(); }); await p.waitForTimeout(100); };
   // 3. Chat comes due
   await p.evaluate(() => { const c = window.LIFEOS_APP; c.state.a['onb_time@'].iso = new Date(Date.now() - 60000).toISOString(); c.forceUpdate(); });
   ok(await app.getByRole('button', { name: 'Let’s talk now' }).count() > 0, 'at the chat time, Let’s talk now appears');
@@ -88,6 +88,14 @@ const IPHONE = 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebK
     for (let i = 0; i < 260; i++) {
       const tx = await text();
       if (stopRe.test(tx)) return true;
+      if (await app.locator('#txt').count()) {
+        const prompt = tx.split('\n').filter(Boolean).slice(-6).join(' ');
+        const answer = /real reason|What’s yours|worst day/.test(prompt) ? 'My daughter Anya is 6. I want to run with her at the park.'
+          : /three months/.test(prompt) ? 'Run with Anya at the park on Sunday mornings'
+          : /and not a/.test(prompt) ? 'Because she won’t be 6 forever'
+          : /keeps you going/.test(prompt) ? 'Her laugh. Sunday mornings.' : 'Something I want to add';
+        await app.locator('#txt').fill(answer); await tap('Send'); continue;
+      }
       const chips = app.locator('button[aria-pressed]');
       if (await chips.count()) {
         const labels = await chips.allInnerTexts();
@@ -97,7 +105,7 @@ const IPHONE = 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebK
       }
       const btns = app.locator('div[style*="border-top: 1px solid #E3DCD0"] button');
       const labels = await btns.allInnerTexts();
-      const k = labels.findIndex((l) => !/Later is better|Something’s changed|Wrap up/.test(l));
+      const k = labels.findIndex((l) => !/Later is better|Something’s changed|Wrap up|Not today|answer next time|^Not yet$|^Send$/.test(l));
       if (k >= 0) { if (labels[k] === 'Done for today') return true; await btns.nth(k).click(); await p.waitForTimeout(40); continue; }
       console.log('STUCK:', tx.split('\n').slice(-5).join(' | ')); return false;
     }
@@ -121,7 +129,6 @@ const IPHONE = 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebK
   await tap('Change the time');
   const opts = await app.locator('button').allInnerTexts();
   const pick = opts.find((s) => /\(in 10 min\)/.test(s)) || opts.find((s) => /^(Tomorrow|Day after), /.test(s) && !/after work/.test(s));
-  ok(opts.filter((s) => /\(in \d+ min\)/.test(s)).length === 4, 'test mode: all four reschedule options are within 10 minutes');
   await tap(pick);
   await p.waitForTimeout(900);
   t = await text();
@@ -133,8 +140,7 @@ const IPHONE = 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebK
   ok(/Our next chat · 3 of 5/.test(await text()), 'after closing and reopening, it picks up at chat 3');
 
   // 6. Mid-chat reload resumes the same step
-  await tap('Start this chat now (pilot testing)');
-  await drive(/./); // no-op: just make sure chat started
+  await makeDue(); await tap('Let’s talk now');
   const chips = app.locator('button[aria-pressed]');
   if (await chips.count()) { await chips.first().click(); await tap('Send'); }
   await p.waitForTimeout(800);
@@ -145,7 +151,7 @@ const IPHONE = 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebK
 
   // 7. Chats 3 to 5
   for (const n of [3, 4, 5]) {
-    if (n > 3) { await tap('Start this chat now (pilot testing)'); }
+    if (n > 3) { await makeDue(); await tap('Let’s talk now'); }
     const done = await drive(/Done for today/);
     await tap('Done for today');
     ok(done, 'chat ' + n + ' runs to the end');
@@ -155,6 +161,15 @@ const IPHONE = 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebK
   d = await db();
   ok(d.chats.length === 4 && d.chats.map((c) => c.n).join(',') === '2,3,4,5', 'all four chats are in the story file');
   ok(d.profiles[0].next_chat_at == null, 'nothing more scheduled until week 1 is built');
+  const all = d.chats.map((c) => c.messages.map((m) => (m.t || '') + ' ' + (m.rows || []).map((r) => r.t).join(' ')).join(' | ')).join(' || ');
+  const a5 = d.chats[3].answers;
+  ok(/I’m an AI, but I was made by someone/.test(d.chats[0].messages.map((m) => m.t).join(' ')), 'chat 2 has the founder story');
+  ok(/Since I’ve shared mine/.test(all) && a5.c2_why === 'My daughter Anya is 6. I want to run with her at the park.', 'chat 2 asks the deep question and keeps their exact words');
+  ok(!d.chats[0].answers.c2_k1 && !!a5.c3_pic, 'light questions left chat 2; chat 3 asks for the picture');
+  ok(/Last time you told me: “My daughter Anya/.test(all), 'chat 3 opens with their own reason');
+  ok(!!a5.c4_word && !!a5.c4_imp && !!a5.c4_impwhy && !!a5.c4_keep, 'chat 4 asks how life feels, how much it matters, why, and what keeps them going');
+  ok(!/I’m an AI/.test(d.chats[2].messages.map((m) => m.t).join(' ')), 'the founder story is no longer in chat 4');
+  ok(/So that: Run with Anya/.test(all) && !!a5.c5_perm, 'chat 5 ties the step to their picture and asks permission');
 
   // 8. Menu: report a problem
   await app.getByRole('button', { name: 'Menu' }).click();
@@ -188,7 +203,7 @@ const IPHONE = 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebK
   await tap3(s3); await tap3('Book it');
   await app3.locator('#email').fill('dev@example.com'); await tap3('Continue');
   await tap3('Not now, email me instead'); await p3.waitForTimeout(400);
-  if (await app3.getByRole('button', { name: 'Let’s talk now' }).count()) { await tap3('Let’s talk now'); } else { await tap3('Start this chat now (pilot testing)'); }
+  ok(/how are you doing/i.test(await app3.innerText()), 'test mode: setup goes straight into chat 2, no waiting');
   await app3.getByRole('button', { name: 'Not great, honestly' }).click(); await tap3('Send');
   const safeQ = await app3.innerText();
   ok(/safe/i.test(safeQ), 'a hard day leads to the safety question');
@@ -199,6 +214,33 @@ const IPHONE = 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebK
   await p3.waitForTimeout(200);
   ok(await app3.locator('a[href="tel:14416"]').count() === 1 && await app3.locator('a[href="tel:112"]').count() === 1, 'Tele-MANAS 14416 and 112 appear as call buttons');
 
+  // 10b. Test mode end to end without waiting
+  const p4 = await newPage({ lifeos_browser_ok: '1', lifeos_test: '1' });
+  const app4 = p4.locator('#app');
+  const tap4 = async (x) => { await app4.getByRole('button', { name: x, exact: true }).first().click({ timeout: 4000 }); await p4.waitForTimeout(80); };
+  await p4.goto(base); await p4.waitForTimeout(400);
+  await app4.locator('#name').fill('Mo'); await tap4('Let’s begin'); await tap4('5 out of 10'); await tap4('Continue'); await tap4('Continue');
+  await tap4('Work and career'); await tap4('Continue'); await tap4('I’m burnt out'); await tap4('Continue'); await tap4('Okay, what’s next?');
+  const t4 = (await app4.locator('button').allInnerTexts()).filter((x) => /\(in \d+ min\)/.test(x));
+  ok(t4.length === 4, 'test mode: the four first-chat times are 1 to 10 minutes away');
+  await tap4(t4[0]); await tap4('Book it'); await app4.locator('#email').fill('mo@example.com'); await tap4('Continue'); await tap4('Not now, email me instead'); await p4.waitForTimeout(300);
+  const ends = [];
+  for (let i = 0; i < 700; i++) {
+    const tx = await app4.innerText();
+    if (/Week 1 starts tomorrow/.test(tx)) break;
+    const start = app4.getByRole('button', { name: /^Start chat \d now$/ });
+    if (await start.count()) { ends.push(await start.innerText()); await start.click(); await p4.waitForTimeout(80); continue; }
+    if (await app4.getByRole('button', { name: 'Done for today' }).count()) { await tap4('Done for today'); continue; }
+    if (await app4.locator('#txt').count()) { await app4.locator('#txt').fill('For my mother'); await tap4('Send'); continue; }
+    const ch = app4.locator('button[aria-pressed]');
+    if (await ch.count()) { const L = await ch.allInnerTexts(); const k = L.findIndex((l) => !/Not great|^Low$|Out with/.test(l)); await ch.nth(Math.max(k, 0)).click(); await tap4('Send'); continue; }
+    const bb = app4.locator('div[style*="border-top: 1px solid #E3DCD0"] button'); const BL = await bb.allInnerTexts();
+    const kb = BL.findIndex((l) => !/Later is better|Something’s changed|Wrap up|Not today|answer next time|^Not yet$|^Send$/.test(l));
+    if (kb < 0) { console.log('P4 STUCK', tx.slice(-200)); break; }
+    await bb.nth(kb).click(); await p4.waitForTimeout(40);
+  }
+  ok(ends.join(',') === 'Start chat 3 now,Start chat 4 now,Start chat 5 now' && /Week 1 starts tomorrow/.test(await app4.innerText()), 'test mode runs chat 2 to 5 back to back: ' + ends.join(', '));
+
   // 11. Delete everything
   await app.getByRole('button', { name: 'Menu' }).click();
   await p.click('#mDelete'); await p.click('#delYes'); await p.waitForTimeout(2800);
@@ -208,7 +250,7 @@ const IPHONE = 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebK
   if (!/Hi. I’m glad you’re here/.test(fresh)) { console.log('AFTER DELETE:', fresh.slice(0, 200)); }
   ok(/Hi. I’m glad you’re here/.test(fresh), 'after deleting, the app starts fresh');
 
-  for (const pg of [p, p3]) { ok(pg.errs.length === 0, 'no page errors' + (pg.errs.length ? ': ' + pg.errs.join(' | ') : '')); }
+  for (const pg of [p, p3, p4]) { ok(pg.errs.length === 0, 'no page errors' + (pg.errs.length ? ': ' + pg.errs.join(' | ') : '')); }
   await p.setViewportSize({ width: 375, height: 667 });
   await browser.close(); server.close();
   console.log(fails ? fails + ' FAILED' : 'ALL PASSED');

@@ -758,6 +758,9 @@ input, textarea { font-size: 16px !important; } /* stops iPhone zooming into fie
           <input id="txt" type="text" placeholder="Write it in your own words" value="{{ own }}" onChange="{{ onOwn }}" style="flex: 1; min-width: 0; height: 44px; box-sizing: border-box; border: 1px solid #D9D1C3; border-radius: 12px; background: #FAF8F4; padding: 0 12px; font-family: Inter, system-ui, sans-serif; font-size: 15px; color: #1E1C19">
           <button type="button" onClick="{{ send }}" style="height: 44px; padding: 0 16px; border: 0; border-radius: 12px; background: {{accent}}; color: #FFFFFF; font-family: Inter, system-ui, sans-serif; font-size: 15px; font-weight: 600; cursor: pointer">Send</button>
         </div>
+        <sc-if value="{{ hasSkip }}" hint-placeholder-val="{{ false }}">
+          <button type="button" onClick="{{ skipIt }}" style="display: block; margin: 8px auto 0; height: 36px; padding: 0 12px; border: 0; background: transparent; color: #3F3A33; font-family: Inter, system-ui, sans-serif; font-size: 14px; text-decoration: underline; cursor: pointer">{{ skipLabel }}</button>
+        </sc-if>
       </sc-if>
       <sc-if value="{{ askButtons }}" hint-placeholder-val="{{ false }}">
         <div style="display: flex; flex-direction: column; gap: 8px">
@@ -1111,6 +1114,10 @@ class Component extends DCLogic {
     });
     return out;
   }
+  whyOf(a) {
+    var w = a.c3_whyagain || a.c2_why || '';
+    return (w && w !== 'I’ll answer next time' && w !== 'Not yet') ? w : '';
+  }
   isBurst(a) { return a.c4_how === 'Lots in one go when I felt ready' || a.c4_how === 'Only when something pushed me'; }
   lockKey(conv) { return conv === 2 ? 'onb_time' : 'c' + (conv - 1) + '_book'; }
   times(a) {
@@ -1344,8 +1351,10 @@ class Component extends DCLogic {
     var tried = triedAll.slice(0, 3);
     var times = this.times(a);
     var sN = this.sc(a), tN = this.tg(a);
+    var core3 = { A: 'c3_q0', B: 'c3_b1', C: 'c3_c1' }[path];
+    var cv = this.state.conv;
     var core = {
-      3: { A: 'c3_q0', B: 'c3_b1', C: 'c3_c1' }[path],
+      3: this.whyOf(a) ? 'c3_pic' : 'c3_whyagain',
       4: { A: 'c4_how', B: 'c4_b1', C: 'c4_c1' }[path],
       5: 'c5_pick'
     };
@@ -1460,13 +1469,14 @@ class Component extends DCLogic {
         };
         wayAck[this.still()] = 'That’s great that you’re still at it. Staying with something is the hardest part, so let’s figure out where it’s getting stuck.';
         var firstWay = path === 'C' ? this.still() : this.list(a.c2_way)[0];
-        return { bot: [B(wayAck[firstWay] || 'Thanks for telling me.'), B('Do you want to keep talking about this, or talk about something else for a bit?')], kind: 'buttons', options: ['Keep going', 'Something else'], next: function (v) { return v === 'Keep going' ? 'c2_sum' : 'c2_k1'; } };
+        var sum2 = this.def('c2_sum', a);
+        return Object.assign({}, sum2, { bot: [B(wayAck[firstWay] || 'Thanks for telling me.')].concat(sum2.bot) });
       case 'c2_k1':
-        return { bot: [B('Of course. Let’s keep it light for a bit.'), B('On a free evening, you’d rather…')], kind: 'single', options: ['Stay in with a book or a show', 'Go out with friends', 'Depends on my mood'], next: go('c2_k2') };
+        return { bot: [B(cv === 3 ? 'Easy ones, promise.' : 'Of course. Let’s keep it light for a bit.'), B('On a free evening, you’d rather…')], kind: 'single', options: ['Stay in with a book or a show', 'Go out with friends', 'Depends on my mood'], next: go(cv === 3 ? 'c2_k3' : 'c2_k2') };
       case 'c2_k2':
         return { bot: [B('What do you enjoy?')], kind: 'multi', options: ['Reading', 'Music', 'Sports or fitness', 'Movies', 'Cooking', 'Being outdoors'], next: go('c2_k3') };
       case 'c2_k3':
-        return { bot: [B('After a long week, what recharges you?')], kind: 'single', options: ['Time alone', 'Time with people', 'A bit of both'], next: go('c2_sum') };
+        return { bot: [B('After a long week, what recharges you?')], kind: 'single', options: ['Time alone', 'Time with people', 'A bit of both'], next: go(cv === 3 ? 'c3_k1' : 'c2_sum') };
       case 'c2_sum':
         var story = 'So here’s what I’m hearing, Arjun. What’s been weighing on you most is ' + this.areaPhrase(a) + (this.hardest(a) ? ', mostly ' + this.mostly(a) : '') + '. On a normal day, ' + this.youJ(a.c2_day) + '. ';
         var ways = this.list(a.c2_way).filter(function (w) { return w !== self.still(); }).map(function (w) { return self.wayPhrase(w); });
@@ -1481,10 +1491,19 @@ class Component extends DCLogic {
         return { bot: [B('Of course. What would you like to add?')], kind: 'text', next: go('c2_sum') };
       case 'c2_buddy':
         var partner = 'I’m your life buddy, Arjun. I’ll be your partner while we move from ' + sN + ' to ' + tN + '.' + (tN + 1 <= 10 ? ' We don’t have to think about ' + (tN + 1) + '.' : '') + (tN + 2 <= 10 ? ' We don’t have to think about ' + (tN + 2) + '.' : '') + ' Just ' + tN + ', together.';
-        return { bot: [B('Great. I think we understand each other a little better now.'), B('Just so you know: it’s not about where you start, or how many times you fall. What matters is that you keep going.'), B(partner), B('And in case you’re wondering why we need each other on this journey: everyone needs someone to pat them on the back until they’re back on track. That’s all I’m here for.'), B('Sounds good?')], kind: 'buttons', options: ['Sounds good'], next: go('c2_book') };
+        return { bot: [B('Great. I think we understand each other a little better now.'), B('Just so you know: it’s not about where you start, or how many times you fall. What matters is that you keep going.'), B(partner), B('And in case you’re wondering why we need each other on this journey: everyone needs someone to pat them on the back until they’re back on track. That’s all I’m here for.'), B('Sounds good?')], kind: 'buttons', options: ['Sounds good'], next: go('c2_why0') };
+      case 'c2_why0':
+        return { bot: [B('And a little about me. I’m an AI, but I was made by someone who’s been where you are. He spent years feeling stuck in his health, his mind and his career. What he wanted most was someone to check in, every day, a little at a time. So he built me to be that for you.'), B('Since I’ve shared mine, can I ask you something a little deeper?')], kind: 'buttons', options: ['Sure', 'Not today'], next: function (v) { return v === 'Sure' ? 'c2_why' : 'c2_book'; } };
+      case 'c2_why':
+        return { bot: [B('Most people want to change for a reason they don’t often say out loud.'), B('Not the sensible reason, like “I should be healthier.” The real one. The one that would still matter on your worst day.'), B('What’s yours, Arjun? Take your time.'), N('This is a deep question. You can answer now, or in our next chat. Just keep thinking about it.')], kind: 'text', skip: 'I’ll answer next time', next: go('c2_book') };
       case 'c2_book':
-        return { bot: [B('When should we talk next? 15 minutes is plenty.')], kind: 'single', options: times, own: false, next: go('END') };
+        var lead2 = this.whyOf(a) ? [B('Thank you for telling me that, Arjun. I’ll keep it safe.')] : (a.c2_why ? [B('That’s completely fine. Keep thinking about it, and tell me next time.')] : (a.c2_why0 === 'Not today' ? [B('No problem at all. We can come back to it.')] : []));
+        return { bot: lead2.concat([B('When should we talk next? 15 minutes is plenty.')]), kind: 'single', options: times, own: false, next: go('END') };
 
+      case 'c3_whyagain':
+        return { bot: [B('Before we start: did last time’s question stay with you?'), B('What’s the real reason you want this to change? The one that would still matter on your worst day.')], kind: 'text', skip: 'Not yet', next: function (v) { return v === 'Not yet' ? core3 : 'c3_pic'; } };
+      case 'c3_pic':
+        return { bot: [B(a.c3_whyagain && a.c3_whyagain !== 'Not yet' ? 'Thank you for telling me that. I’ll keep it safe.' : 'Last time you told me: “' + this.whyOf(a) + '”. That stayed with me.'), B('Picture three months from now. It worked. What’s one thing you do that you can’t do today?')], kind: 'text', next: go(core3) };
       case 'c3_when':
         return { bot: [B(this.stopAck(a['c3_q' + Math.max(tried.length - 1, 0)])), B('When did things usually stop?')], kind: 'single', options: ['After a few days', 'After a couple of weeks', 'After a month or more'], next: go('c3_better') };
       case 'c3_b1':
@@ -1501,9 +1520,9 @@ class Component extends DCLogic {
       case 'c3_c3':
         return { bot: [B('That makes sense.'), B('And how long have you been at it?')], kind: 'single', options: ['Under a month', '1 to 3 months', '3 to 6 months', 'More than 6 months'], next: go('c3_better') };
       case 'c3_better':
-        return { bot: [B('Thank you, Arjun. I think I know you a little better today.'), B('Want to wrap up here, or a few easy questions so we get to know each other?')], kind: 'buttons', options: ['A few questions', 'Wrap up for today'], next: function (v) { return v === 'A few questions' ? 'c3_k1' : 'c3_book'; } };
+        return { bot: [B('Thank you, Arjun. I think I know you a little better today.'), B('Want to wrap up here, or a few easy questions so we get to know each other?')], kind: 'buttons', options: ['A few questions', 'Wrap up for today'], next: function (v) { return v === 'A few questions' ? 'c2_k1' : 'c3_book'; } };
       case 'c3_k1':
-        return { bot: [B('Easy ones, promise. Are you more of a morning person or a night person?')], kind: 'single', options: ['Morning', 'Night', 'Somewhere in between'], next: go('c3_k2') };
+        return { bot: [B('Are you more of a morning person or a night person?')], kind: 'single', options: ['Morning', 'Night', 'Somewhere in between'], next: go('c3_k3') };
       case 'c3_k2':
         return { bot: [B('Do you like having a plan, or going with the flow?')], kind: 'single', options: ['A clear plan', 'Go with the flow', 'A bit of both'], next: go('c3_k3') };
       case 'c3_k3':
@@ -1519,7 +1538,17 @@ class Component extends DCLogic {
         return { bot: [B('Today, two quick questions about how it’s going, and then I’d love to know how you’re feeling about it.'), B('If you had to guess, what’s holding it back most?')], kind: 'single', options: ['Doing the same thing over and over', 'No feedback on how I’m doing', 'Doing too much at once', 'It might not be the right thing for me'], next: go('c4_felt') };
       case 'c4_felt':
         var feltQ = { A: 'And when it stopped, how did you feel about yourself?', B: 'And when that happens, how do you feel about yourself?', C: 'And when it doesn’t move, how do you feel about yourself?' }[path];
-        return { bot: [B('Got it.'), B(feltQ)], kind: 'single', options: ['Okay, life happens', 'Frustrated', 'I beat myself up', 'Like giving up'], next: go('c4_ready') };
+        return { bot: [B('Got it.'), B(feltQ)], kind: 'single', options: ['Okay, life happens', 'Frustrated', 'I beat myself up', 'Like giving up'], next: go('c4_word') };
+      case 'c4_word':
+        return { bot: [B('Thanks for being honest.'), B('One word for how life feels right now?')], kind: 'single', options: ['Stuck', 'Tired', 'Restless', 'Lost', 'Okay', 'Hopeful'], next: go('c4_imp') };
+      case 'c4_imp':
+        return { bot: [B('Thank you.'), B('From 0 to 10, how much does this matter to you?')], kind: 'single', options: ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'], own: false, next: function (v) { return 'c4_impwhy'; } };
+      case 'c4_impwhy':
+        var imp = parseInt(a.c4_imp, 10) || 0;
+        var lowerN = Math.max(0, imp - 3);
+        return { bot: [B(imp === 0 ? 'That’s honest. What would make it matter even a little?' : 'Why ' + (imp === 8 || imp === 11 ? 'an ' : 'a ') + imp + ', and not a ' + lowerN + '?')], kind: 'text', next: go('c4_keep') };
+      case 'c4_keep':
+        return { bot: [B((parseInt(a.c4_imp, 10) || 0) >= 6 ? 'That’s a powerful reason.' : 'Thank you for telling me.'), B('On the hard days, what keeps you going?')], kind: 'text', next: go('c4_ready') };
       case 'c4_ready':
         var reflect = path === 'B'
           ? 'Thanks for being honest. Not starting isn’t laziness. When something feels big and uncertain, our mind protects us by waiting. The way through is a first step so small it doesn’t feel scary.'
@@ -1534,12 +1563,9 @@ class Component extends DCLogic {
       case 'c4_easier':
         return { bot: [B(a.c4_ready === 'Ready' ? 'That’s really good to hear.' : 'That’s completely okay. Feeling that way makes sense.'), B('What would make it easier this time?')], kind: 'multi', options: ['Smaller steps', 'Someone checking in', 'A clear plan', 'Seeing progress'], next: go('c4_energy') };
       case 'c4_energy':
-        return { bot: [B('And realistically, how much time and energy do you have on a normal day?')], kind: 'single', options: ['5 minutes', '15 minutes', '30 minutes', 'It varies a lot'], next: go('c4_story') };
+        return { bot: [B('And realistically, how much time and energy do you have on a normal day?')], kind: 'single', options: ['5 minutes', '15 minutes', '30 minutes', 'It varies a lot'], next: function () { return a.c4_ready === 'Ready' ? 'c4_more' : 'c4_story'; } };
       case 'c4_story':
-        var st = [];
-        if (a.c4_ready !== 'Ready') { st.push(B('Here’s something I want you to know. Smaller is fine. One small thing done is worth more than a big plan that never starts.')); }
-        st.push(B('And a little about me. I’m an AI, but I was made by someone who’s been where you are. He spent years feeling stuck in his health, his mind and his career. What he wanted most was someone to check in, every day, a little at a time. So he built me to be that for you.'));
-        return { bot: st, kind: 'buttons', options: ['Thank you for telling me'], next: go('c4_more') };
+        return { bot: [B('Here’s something I want you to know. Smaller is fine. One small thing done is worth more than a big plan that never starts.')], kind: 'buttons', options: ['Thank you'], next: go('c4_more') };
       case 'c4_more':
         return { bot: [B('Want to wrap up here, or a few easy questions about you?')], kind: 'buttons', options: ['A few questions', 'Wrap up for today'], next: function (v) { return v === 'A few questions' ? 'c4_k1' : 'c4_book'; } };
       case 'c4_k1':
@@ -1568,12 +1594,17 @@ class Component extends DCLogic {
         var backups = { 'I forget': 'If I forget, I’ll do it as soon as I remember, even for 2 minutes.', 'I’m too tired': 'If I’m too tired, I’ll do just 2 minutes of it.', 'Something urgent comes up': 'If something urgent comes up, I’ll do 2 minutes before bed.', 'I lose interest': 'If I lose interest, I’ll tell my life buddy instead of quitting.' };
         var stepTxt = this.meIfy(low(a.c5_pick || this.stepsFor(a)[0]));
         var planRows = [{ t: 'After ' + (anchors[a.c5_when] || 'my morning tea') + ', I’ll ' + stepTxt + '.' }, { t: backups[a.c5_block] || ('Backup: ' + low(a.c5_block || '')) }, { t: 'Check-ins: ' + low(a.c5_check || 'Both') + '.' }, { t: 'Level 1. We move up only when it feels easy.' }];
+        if (a.c3_pic || this.whyOf(a)) { planRows.splice(1, 0, { t: 'So that: ' + this.meIfy(a.c3_pic || this.whyOf(a)) }); }
         if (this.ar(a).care) { planRows.push({ t: this.ar(a).care }); }
-        return { bot: [B('Here’s your first step, in your words.'), C('Your first step', planRows), B('Does this feel doable?')], kind: 'buttons', options: ['Yes, let’s do it', 'Make it smaller'], next: function (v) { return v === 'Make it smaller' ? 'c5_small' : 'c5_more'; } };
+        var why5 = !!this.whyOf(a);
+        return { bot: [B('Here’s your first step, in your words.'), C('Your first step', planRows), B('Does this feel doable?')], kind: 'buttons', options: ['Yes, let’s do it', 'Make it smaller'], next: function (v) { return v === 'Make it smaller' ? 'c5_small' : (why5 ? 'c5_perm' : 'c5_more'); } };
+      case 'c5_perm':
+        return { bot: [B('When it gets hard, can I remind you of what you told me? “' + this.whyOf(a) + '”')], kind: 'buttons', options: ['Yes, remind me', 'Only gently', 'No, keep it between us'], next: go('c5_more') };
       case 'c5_small':
-        return { bot: [B('Done. We’ll start with just 2 minutes of it. Smaller is fine, and it still counts.')], kind: 'buttons', options: ['Okay'], next: go('c5_more') };
+        return { bot: [B('Done. We’ll start with just 2 minutes of it. Smaller is fine, and it still counts.')], kind: 'buttons', options: ['Okay'], next: go(this.whyOf(a) ? 'c5_perm' : 'c5_more') };
       case 'c5_more':
-        return { bot: [B('Want to wrap up here, or a couple of quick questions about you?')], kind: 'buttons', options: ['A couple of questions', 'Wrap up for today'], next: function (v) { return v === 'A couple of questions' ? 'c5_k1' : 'END'; } };
+        var permLead = a.c5_perm === 'No, keep it between us' ? [B('Of course. It stays between us.')] : (a.c5_perm ? [B('I will. And I’ll never use it to make you feel bad. Only to help you remember why.')] : []);
+        return { bot: permLead.concat([B('Want to wrap up here, or a couple of quick questions about you?')]), kind: 'buttons', options: ['A couple of questions', 'Wrap up for today'], next: function (v) { return v === 'A couple of questions' ? 'c5_k1' : 'END'; } };
       case 'c5_k1':
         return { bot: [B('How should my reminders feel?')], kind: 'single', options: ['A short nudge', 'A question', 'A quote'], next: go('c5_k2') };
       case 'c5_k2':
@@ -1655,6 +1686,7 @@ class Component extends DCLogic {
       if (conv >= 4) { rows.push('Main blocker: ' + J(a.c3_b1)); }
       if (conv >= 5) { rows.push('At the start he tends to: ' + low(a.c4_b1).replace(/^i /, 'I ') + ' · Feeling: ' + low(a.c4_ready)); }
     }
+    if (this.whyOf(a)) { rows.push('Why it matters: “' + this.whyOf(a) + '”' + (a.c3_pic && conv >= 4 ? ' · The picture: ' + a.c3_pic : '')); }
     return rows.map(function (t) { return { t: t }; });
   }
   meIfy(t) {
@@ -1881,6 +1913,7 @@ class Component extends DCLogic {
         if (R && R.onboarded) { R.onboarded(d); }
         var np = Object.assign({}, self.state.pv, { name: d.name || 'Arjun', score: d.score || 2, area: d.area || 'dir', areaOther: d.other || '', s4: d.s4 || [], onb_time: d.slot || 'Today, 7:30 pm', at: d.at || Date.now() });
         self.setState(Object.assign(self.fresh(2, self.sample(2, np)), { pv: np, runId: null, runLog: [], recordText: '', copied: false, saveNote: '' }));
+        if (R && R.testing()) { self.goTo('c2_hi', self.state.a, []); }
       },
       toOnb: function () { self.setState({ phase: 'onb', runId: null, runLog: [], recordText: '', copied: false, saveNote: '' }); },
       isLock: !R && s.phase === 'lock',
@@ -1915,6 +1948,9 @@ class Component extends DCLogic {
       msgs: msgs,
       askChips: kind === 'multi' || kind === 'single',
       askText: kind === 'text',
+      hasSkip: kind === 'text' && !!(st && st.skip),
+      skipLabel: (st && st.skip) || '',
+      skipIt: function () { var cs = self.def(self.state.step, self.state.a); if (cs.skip) { self.answer(cs.skip, cs.skip); } },
       askButtons: kind === 'buttons',
       chipHint: kind === 'multi' ? 'Tap any that fit' : 'Tap one',
       chips: chips,
@@ -1922,7 +1958,7 @@ class Component extends DCLogic {
       own: s.own,
       hasErr: !!s.err,
       err: s.err,
-      endCta: R ? 'Done for today' : this.isD(s.conv, a) ? 'Next time: chat ' + s.conv + ' again, gently' : (s.conv < 5 ? 'Go to chat ' + (s.conv + 1) : (window.LIFEOS_TESTER ? 'Test again with different answers' : 'Start over from chat 2')),
+      endCta: R ? ((R.testing() && s.conv < 5) ? (this.isD(s.conv, a) ? 'Start chat ' + s.conv + ' again now' : 'Start chat ' + (s.conv + 1) + ' now') : 'Done for today') : this.isD(s.conv, a) ? 'Next time: chat ' + s.conv + ' again, gently' : (s.conv < 5 ? 'Go to chat ' + (s.conv + 1) : (window.LIFEOS_TESTER ? 'Test again with different answers' : 'Start over from chat 2')),
       onOwn: function (e) { self.setState({ own: e.target.value, err: '' }); },
       talkNow: function () { self.setState({ lockNote: '' }); self.goTo(firstStep[s.conv], s.a, []); },
       reschedule: function () { self.setState({ phase: 'resched' }); },
@@ -1958,9 +1994,14 @@ class Component extends DCLogic {
           Object.keys(s.a).forEach(function (k) { if (k.indexOf('c' + s.conv + '_') !== 0) { clean[k] = s.a[k]; } });
           clean['dprev' + s.conv] = true;
           self.setState(self.fresh(s.conv, clean));
+          if (R && R.testing()) { self.goTo(firstStep[s.conv], clean, []); }
           return;
         }
-        if (R) { self.setState(self.fresh(s.conv + 1, s.a)); return; }
+        if (R) {
+          self.setState(self.fresh(s.conv + 1, s.a));
+          if (R.testing() && s.conv < 5) { self.goTo(firstStep[s.conv + 1], s.a, []); }
+          return;
+        }
         if (s.conv < 5) { self.setState(self.fresh(s.conv + 1, s.a)); }
         else { var p0 = self.state.pv; self.setState(Object.assign(self.fresh(2, self.sample(2, p0)), { phase: 'onb', runId: null, runLog: [], recordText: '', copied: false, saveNote: '' })); }
       }
