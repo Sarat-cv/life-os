@@ -11,6 +11,7 @@ const RUNS = +process.argv[2] || 3000;
 const areas = ['mind', 'body', 'work', 'money', 'rel', 'dir', 'sleep', 'other'];
 const pick = (xs) => xs[Math.floor(Math.random() * xs.length)];
 const texts = ['For my kids', 'My mother. I want her to stop worrying about me.', 'To prove it to myself', 'Because I’m tired of being tired', 'I want to feel proud again'];
+const fit = [];
 let bad = 0, stats = { runs: 0, paths: {}, d: 0, why: 0, skipped: 0 };
 for (let r = 0; r < RUNS; r++) {
   const c = new Component({});
@@ -26,6 +27,13 @@ for (let r = 0; r < RUNS; r++) {
     if (s.phase === 'end') { out.push(...s.msgs); if (c.isD(conv, s.a)) { stats.d++; const clean = {}; Object.keys(s.a).forEach((k) => { if (k.indexOf('c' + conv + '_') !== 0) clean[k] = s.a[k]; }); clean['dprev' + conv] = true; c.state = Object.assign(c.state, c.fresh(conv, clean)); } else { conv++; c.state = Object.assign(c.state, c.fresh(conv, s.a)); } if (conv > 5) break; c.goTo('c' + conv + '_hi', c.state.a, []); continue; }
     if (s.phase === 'resched') { c.state = Object.assign(c.state, { phase: 'lock' }); c.goTo('c' + conv + '_hi', c.state.a, []); continue; }
     const st = c.def(s.step, s.a);
+    const A = c.ar(s.a);
+    if (/^c2_way$/.test(s.step) && st.kind !== 'multi' ? false : s.step === 'c2_way' && st.options.slice(0, 1)[0] === c.still()) {
+      const want = [c.still()].concat(A.way.map((x) => x.o));
+      if (JSON.stringify(st.options) !== JSON.stringify(want)) fit.push(area + ' c2_way: ' + st.options.join(' / '));
+    }
+    if (/^c3_q\d$/.test(s.step) && JSON.stringify(st.options) !== JSON.stringify(A.stop.map((x) => x.o))) fit.push(area + ' ' + s.step + ': ' + st.options.join(' / '));
+    if (s.step === 'c4_how' && JSON.stringify(st.options) !== JSON.stringify(A.how)) fit.push(area + ' c4_how: ' + st.options.join(' / '));
     let v;
     if (st.kind === 'text') { v = (st.skip && Math.random() < 0.25) ? st.skip : pick(texts); if (v === st.skip) stats.skipped++; c.answer(v, v); continue; }
     let opts = st.options.filter((o) => !/Later is better/.test(o));
@@ -44,6 +52,7 @@ for (let r = 0; r < RUNS; r++) {
   if (c.whyOf(a) && !/So that:/.test(txt) && !/Done\. We’ll start/.test(txt) && a.c5_plan) probs.push('plan missing reason');
   if (probs.length) { bad++; if (bad <= 5) console.log('RUN', r, area, c.pathOf(a), probs); }
 }
+if (fit.length) { bad++; console.log('OPTIONS FROM THE WRONG AREA:', [...new Set(fit)].slice(0, 8)); }
 console.log(JSON.stringify(stats));
 console.log(bad ? bad + ' runs with problems' : 'ALL ' + RUNS + ' RUNS CLEAN');
 process.exit(bad ? 1 : 0);

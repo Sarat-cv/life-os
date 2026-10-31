@@ -1118,7 +1118,7 @@ class Component extends DCLogic {
     var w = a.c3_whyagain || a.c2_why || '';
     return (w && w !== 'I’ll answer next time' && w !== 'Not yet') ? w : '';
   }
-  isBurst(a) { return a.c4_how === 'Lots in one go when I felt ready' || a.c4_how === 'Only when something pushed me'; }
+  isBurst(a) { var h = this.ar(a).how || []; return a.c4_how === h[0] || a.c4_how === h[2] || a.c4_how === 'Lots in one go when I felt ready' || a.c4_how === 'Only when something pushed me'; }
   lockKey(conv) { return conv === 2 ? 'onb_time' : 'c' + (conv - 1) + '_book'; }
   times(a) {
     a = a || {};
@@ -1147,6 +1147,9 @@ class Component extends DCLogic {
     var T = function (o, did, doing, ack) { return { o: o, did: did, doing: doing, ack: ack }; };
     this._areas = {
       mind: {
+        way: [{"o": "It helped for a while, then I stopped", "p": "it helped for a while, then you stopped", "ack": "That’s really common. Feeling a little better is often exactly when people stop."}, {"o": "It felt awkward or forced", "p": "it felt awkward or forced", "ack": "That makes sense. Opening up can feel strange at first."}, {"o": "It didn’t seem to help", "p": "it didn’t seem to help", "ack": "Thanks for being honest. Not every approach fits everyone."}, {"o": "Life got busy", "p": "life got busy", "ack": "Life gets busy, that’s real."}, {"o": "It cost too much", "p": "it cost too much", "ack": "That’s a real barrier, and nothing to feel bad about."}],
+        stop: [{"o": "Felt a bit better, so I stopped", "ack": "That’s really common, and it’s a good sign it was helping."}, {"o": "Too hard to keep up on bad days", "ack": "That makes sense. Bad days make everything heavier."}, {"o": "Didn’t feel any change", "ack": "That’s discouraging, no doubt."}, {"o": "Got busy", "ack": "Life gets busy, that’s real."}, {"o": "It felt awkward", "ack": "Fair. It takes a while to feel natural."}],
+        how: ["A lot at once, then nothing", "Bit by bit, regularly", "Only when things got really bad"],
         label: 'Mind and mood', phrase: 'your mind and mood',
         s4: ['I feel low most days', 'I worry or overthink a lot', 'I feel numb or flat', 'I’m stressed and stretched thin', 'I feel alone with it'],
         day: ['It’s hard to get out of bed', 'I can’t switch my mind off', 'I avoid people', 'I snap at people I care about'],
@@ -1157,6 +1160,9 @@ class Component extends DCLogic {
         care: ''
       },
       body: {
+        way: [{"o": "It slowly fizzled out", "p": "it slowly fizzled out", "ack": "That’s really common. Most things fizzle out when they run on motivation alone."}, {"o": "Got injured or unwell", "p": "you got injured or unwell", "ack": "That’s rough. Your body comes first."}, {"o": "Didn’t see results", "p": "you didn’t see results", "ack": "That’s discouraging, no doubt. Results take longer than anyone tells you."}, {"o": "Life got busy", "p": "life got busy", "ack": "Life gets busy, that’s real."}, {"o": "Got bored", "p": "you got bored of it", "ack": "Fair. When something feels repetitive, it’s hard to keep going."}],
+        stop: [{"o": "It fizzled out", "ack": "That makes sense. Most things fizzle out when they run on motivation alone."}, {"o": "Didn’t see results", "ack": "That’s discouraging, no doubt."}, {"o": "Got bored", "ack": "Fair. When something feels repetitive, it’s hard to keep going."}, {"o": "Too tired after work", "ack": "That’s real. Evenings can be empty-tank time."}, {"o": "Got injured or unwell", "ack": "That’s rough. Your body comes first."}],
+        how: ["Lots in one go when I felt ready", "A few times every week", "Only when something pushed me"],
         label: 'Body and health', phrase: 'your body and health',
         s4: ['I’m unhappy with my physical shape', 'I have no energy to do anything', 'I have no control over my diet', 'I have a health issue', 'I start, then I stop'],
         day: ['I get out of breath easily', 'I feel aches and stiffness', 'I eat on the run', 'I feel bad about how I look'],
@@ -1167,6 +1173,9 @@ class Component extends DCLogic {
         care: 'Go gently. If anything hurts, stop and check with a doctor.'
       },
       work: {
+        way: [{"o": "Didn’t hear back", "p": "you didn’t hear back", "ack": "That’s discouraging, no doubt. Silence is the hardest answer."}, {"o": "Got rejected", "p": "you got rejected", "ack": "That stings. It says more about the market than about you."}, {"o": "Ran out of steam", "p": "you ran out of steam", "ack": "That’s honest. It’s hard to keep pushing without a reply."}, {"o": "Work took over", "p": "work took over", "ack": "That’s real. The job you have eats the time for the next one."}, {"o": "Not sure it was the right move", "p": "you weren’t sure it was the right move", "ack": "That makes sense. Doubt slows everyone down."}],
+        stop: [{"o": "No replies, so I gave up", "ack": "That’s discouraging, no doubt."}, {"o": "Rejections hurt", "ack": "That stings. Anyone would slow down."}, {"o": "Work took over", "ack": "That’s real. Time and energy run out."}, {"o": "Didn’t know what to do next", "ack": "That makes sense. A next step that isn’t clear is hard to take."}, {"o": "Lost motivation", "ack": "Thanks for being honest. Motivation comes and goes for everyone."}],
+        how: ["Lots in one go when I felt ready", "A few every week", "Only when something pushed me"],
         label: 'Work and career', phrase: 'work and career',
         s4: ['I’m not growing in my role', 'I don’t know what’s next', 'My job search isn’t working', 'I’m burnt out', 'I’m not paid what I’m worth'],
         day: ['I dread the start of the week', 'I do the same work with no growth', 'I compare myself with peers', 'I scroll job sites but don’t apply'],
@@ -1177,6 +1186,9 @@ class Component extends DCLogic {
         care: ''
       },
       money: {
+        way: [{"o": "It worked for a few weeks", "p": "it worked for a few weeks, then slipped", "ack": "Good, it worked for a while. That counts."}, {"o": "Unexpected costs came up", "p": "unexpected costs came up", "ack": "That’s real. Life throws costs at you without asking."}, {"o": "Hard to stick to", "p": "it was hard to stick to", "ack": "That’s honest. Money habits are some of the hardest."}, {"o": "Didn’t make much difference", "p": "it didn’t make much difference", "ack": "That’s discouraging, no doubt."}, {"o": "Family needs came first", "p": "family needs came first", "ack": "That makes sense. Family comes first for most of us."}],
+        stop: [{"o": "Unexpected costs", "ack": "That’s real. Life throws costs at you without asking."}, {"o": "Too strict to keep up", "ack": "Fair. Strict plans are hard to live with."}, {"o": "Forgot to track", "ack": "That’s very normal. Tracking is easy to drop."}, {"o": "Didn’t see a difference", "ack": "That’s discouraging, no doubt."}, {"o": "Pressure from others", "ack": "That’s hard. Saying no to people is tough."}],
+        how: ["Strict for a while, then gave up", "A little every week", "Only when money got tight"],
         label: 'Money', phrase: 'money',
         s4: ['Debt or loans', 'No savings to fall back on', 'Spending gets away from me', 'My income isn’t enough', 'Money stress at home'],
         day: ['I check my balance with dread', 'I run out before the month ends', 'We argue about money at home', 'I say no to plans to save money'],
@@ -1187,6 +1199,9 @@ class Component extends DCLogic {
         care: 'This is a small habit, not financial advice.'
       },
       rel: {
+        way: [{"o": "It helped for a bit, then slipped back", "p": "it helped for a bit, then things slipped back", "ack": "That’s really common. Old patterns have a strong pull."}, {"o": "It turned into an argument", "p": "it turned into an argument", "ack": "That’s hard. Thank you for trying anyway."}, {"o": "Nothing really changed", "p": "nothing really changed", "ack": "That’s discouraging, no doubt."}, {"o": "They didn’t respond", "p": "they didn’t respond", "ack": "That hurts. Reaching out and hearing nothing is hard."}, {"o": "I couldn’t keep it up", "p": "you couldn’t keep it up", "ack": "That’s honest. Relationships take energy, and energy runs out."}],
+        stop: [{"o": "Old patterns came back", "ack": "That’s really common. Old patterns have a strong pull."}, {"o": "We got busy", "ack": "Life gets busy, that’s real."}, {"o": "I didn’t know what to say next", "ack": "That makes sense. It’s hard to know the next words."}, {"o": "I felt unheard", "ack": "That hurts. Wanting to be heard is very human."}, {"o": "It felt awkward", "ack": "Fair. It takes a while to feel natural."}],
+        how: ["One big talk, then nothing", "Small efforts, regularly", "Only when things got really bad"],
         label: 'Relationships', phrase: 'your relationships',
         s4: ['Conflict with family', 'Things with my partner', 'I feel lonely', 'I’ve lost touch with friends', 'It’s hard to open up'],
         day: ['I feel alone even around people', 'The same argument keeps coming back', 'I don’t text people back', 'Weekends feel lonely'],
@@ -1197,6 +1212,9 @@ class Component extends DCLogic {
         care: ''
       },
       dir: {
+        way: [{"o": "It slowly fizzled out", "p": "it slowly fizzled out", "ack": "That’s really common. Most things fizzle out when they run on motivation alone."}, {"o": "Lost interest", "p": "you lost interest", "ack": "Fair. That’s useful to know, too."}, {"o": "It didn’t feel like me", "p": "it didn’t feel like you", "ack": "That’s worth noticing. It tells us something."}, {"o": "Life got busy", "p": "life got busy", "ack": "Life gets busy, that’s real."}, {"o": "Felt more confused after", "p": "you felt more confused after", "ack": "That makes sense. More options can make it harder."}],
+        stop: [{"o": "Lost interest", "ack": "Fair. That’s useful to know, too."}, {"o": "Didn’t lead anywhere", "ack": "That’s discouraging, no doubt."}, {"o": "Got busy", "ack": "Life gets busy, that’s real."}, {"o": "Too many options again", "ack": "That makes sense. More options can make it harder."}, {"o": "Felt behind, so I stopped", "ack": "That’s a heavy feeling. You’re not as behind as it feels."}],
+        how: ["All in for a while, then dropped it", "A little every week", "Only when something pushed me"],
         label: 'Direction and purpose', phrase: 'direction and purpose',
         s4: ['I don’t know what I want', 'I feel behind others', 'Too many options, no clarity', 'I’ve lost my sense of purpose', 'Every day feels the same'],
         day: ['Days blur into each other', 'I keep seeing friends settle down', 'I don’t know what to say when asked “what’s next?”', 'I start things, then drop them'],
@@ -1207,6 +1225,9 @@ class Component extends DCLogic {
         care: ''
       },
       sleep: {
+        way: [{"o": "Worked for a few nights", "p": "it worked for a few nights, then slipped", "ack": "Good, it worked for a while. That counts."}, {"o": "My phone pulled me back", "p": "your phone pulled you back", "ack": "That’s the most common one. Phones are built to keep us up."}, {"o": "Work or plans got in the way", "p": "work or plans got in the way", "ack": "That’s real. Late nights happen."}, {"o": "It didn’t help much", "p": "it didn’t help much", "ack": "That’s discouraging, no doubt."}, {"o": "Weekends broke it", "p": "weekends broke it", "ack": "Very normal. Weekends are hard for everyone."}],
+        stop: [{"o": "Phone pulled me back", "ack": "That’s the most common one. Phones are built to keep us up."}, {"o": "Late work or plans", "ack": "That’s real. Late nights happen."}, {"o": "Didn’t feel a difference", "ack": "That’s discouraging, no doubt."}, {"o": "Weekends broke it", "ack": "Very normal. Weekends are hard for everyone."}, {"o": "Forgot", "ack": "That’s very normal."}],
+        how: ["Strict for a few nights, then old habits", "Most nights, loosely", "Only after a really bad night"],
         label: 'Sleep and energy', phrase: 'your sleep and energy',
         s4: ['I can’t fall asleep', 'I wake up tired', 'My phone keeps me up', 'My schedule is all over the place', 'I’m tired all day'],
         day: ['I lie awake for hours', 'I wake up in the night', 'I need caffeine to get going', 'I crash in the afternoon'],
@@ -1217,6 +1238,9 @@ class Component extends DCLogic {
         care: 'If poor sleep has gone on a long time, it’s worth seeing a doctor too.'
       },
       other: {
+        way: [{"o": "It helped a bit", "p": "it helped a bit, but didn’t last", "ack": "Good, it helped a little. That counts."}, {"o": "Nothing really changed", "p": "nothing really changed", "ack": "That’s discouraging, no doubt."}, {"o": "Hard to keep up", "p": "it was hard to keep up", "ack": "That’s honest. Most things are."}, {"o": "Life got busy", "p": "life got busy", "ack": "Life gets busy, that’s real."}, {"o": "Not sure", "p": "you’re not sure", "ack": "That’s okay. We’ll figure it out together."}],
+        stop: [{"o": "Hard to keep up", "ack": "That’s honest. Most things are."}, {"o": "Nothing changed", "ack": "That’s discouraging, no doubt."}, {"o": "Got busy", "ack": "Life gets busy, that’s real."}, {"o": "Didn’t know what next", "ack": "That makes sense. A next step that isn’t clear is hard to take."}, {"o": "Not sure", "ack": "That’s okay."}],
+        how: ["Lots in one go when I felt ready", "A few every week", "Only when something pushed me"],
         label: 'Something else', phrase: 'what’s been on your mind',
         s4: ['It’s been building for a while', 'Something changed recently', 'It’s hard to explain'],
         day: ['It’s on my mind most of the day', 'It affects my mood', 'It affects my sleep', 'It affects how I treat people'],
@@ -1286,6 +1310,8 @@ class Component extends DCLogic {
       'Didn’t know where to start': 'you weren’t sure where to start', 'Scared it won’t work': 'you were scared it wouldn’t work', 'No time': 'time was short', 'No energy': 'your energy was low'
     };
     map[this.still()] = 'you’re still at it, but feel stuck';
+    var aw = (this.ar(this.state.a || {}).way || []).filter(function (x) { return x.o === w; })[0];
+    if (aw) { return aw.p; }
     return map[w] || ('“' + w + '”');
   }
   stopAck(v) {
@@ -1296,7 +1322,10 @@ class Component extends DCLogic {
       'No motivation': 'Thanks for being honest. Motivation comes and goes for everyone.',
       'Didn’t see results': 'That’s discouraging, no doubt.'
     };
-    return map[this.list(v)[0]] || 'Got it, thank you.';
+    var first = this.list(v)[0];
+    var as = (this.ar(this.state.a || {}).stop || []).filter(function (x) { return x.o === first; })[0];
+    if (as) { return as.ack; }
+    return map[first] || 'Got it, thank you.';
   }
   recap(conv, a) {
     var self = this;
@@ -1417,9 +1446,9 @@ class Component extends DCLogic {
         : [B(this.stopAck(a['c3_q' + (i - 1)]))];
       var lead = i === 0 ? 'When you ' : 'And when you ';
       return {
-        bot: opener.concat([B(lead + this.triedPhrase(tried[i], a) + ', what went wrong? Why do you think it wasn’t consistent?')]),
+        bot: opener.concat([B(lead + this.triedPhrase(tried[i], a) + ', what got in the way of it sticking?')]),
         kind: 'multi',
-        options: ['It fizzled out', 'Dropped off my priorities', 'Got bored', 'No motivation', 'Didn’t see results'],
+        options: this.ar(a).stop.map(function (x) { return x.o; }),
         next: function () { return i + 1 < tried.length ? 'c3_q' + (i + 1) : 'c3_when'; }
       };
     }
@@ -1438,7 +1467,7 @@ class Component extends DCLogic {
       case 'c2_one':
       case 'c2_day':
         var s4 = this.list(a.s4);
-        var openLines = [B('Let’s pick up where we left off. Last time you told me the area affecting you most is ' + this.areaPhrase(a) + (s4.length ? ', and you mentioned ' + this.youJ(s4) : '') + '.'), N('Let me know if this gets too much. We can switch to just getting to know each other.')];
+        var openLines = [B('So, back to what you shared earlier. You told me the area affecting you most is ' + this.areaPhrase(a) + (s4.length ? ', and you mentioned ' + this.youJ(s4) : '') + '.'), N('Let me know if this gets too much. We can switch to just getting to know each other.')];
         if (id === 'c2_one') {
           return { bot: openLines.concat([B('I’d like to go a little deeper today. Out of what you told me, which one hits you hardest?')]), kind: 'single', options: s4, own: false, next: go('c2_day') };
         }
@@ -1454,7 +1483,7 @@ class Component extends DCLogic {
           return { bot: [B('That’s okay. Noticing it is already a first step.'), B('What’s kept you from starting?')], kind: 'multi', options: ['Didn’t know where to start', 'Scared it won’t work', 'No time', 'No energy'], next: go('c2_next') };
         }
         var td0 = this.tdef(a, triedAll[0]);
-        return { bot: [B(td0 ? td0.ack : 'Good, you did something about it. That counts.'), B('What happened with it?')], kind: 'multi', options: [this.still(), 'It slowly fizzled out', 'Dropped off my priorities', 'Got bored', 'No motivation', 'Didn’t hear back'], next: go('c2_next') };
+        return { bot: [B(td0 ? td0.ack : 'Good, you did something about it. That counts.'), B('What happened with it?')], kind: 'multi', options: [this.still()].concat(this.ar(a).way.map(function (x) { return x.o; })), next: go('c2_next') };
       case 'c2_next':
         var wayAck = {
           'It slowly fizzled out': 'Thanks for telling me. Things slowly fizzling out happens to so many people, and it’s fixable.',
@@ -1468,6 +1497,7 @@ class Component extends DCLogic {
           'No energy': 'Thanks for telling me. Low energy makes everything harder. We’ll keep things small.'
         };
         wayAck[this.still()] = 'That’s great that you’re still at it. Staying with something is the hardest part, so let’s figure out where it’s getting stuck.';
+        this.ar(a).way.forEach(function (x) { wayAck[x.o] = x.ack; });
         var firstWay = path === 'C' ? this.still() : this.list(a.c2_way)[0];
         var sum2 = this.def('c2_sum', a);
         return Object.assign({}, sum2, { bot: [B(wayAck[firstWay] || 'Thanks for telling me.')].concat(sum2.bot) });
@@ -1478,7 +1508,7 @@ class Component extends DCLogic {
       case 'c2_k3':
         return { bot: [B('After a long week, what recharges you?')], kind: 'single', options: ['Time alone', 'Time with people', 'A bit of both'], next: go(cv === 3 ? 'c3_k1' : 'c2_sum') };
       case 'c2_sum':
-        var story = 'So here’s what I’m hearing, Arjun. What’s been weighing on you most is ' + this.areaPhrase(a) + (this.hardest(a) ? ', mostly ' + this.mostly(a) : '') + '. On a normal day, ' + this.youJ(a.c2_day) + '. ';
+        var story = 'So here’s what I’m hearing, Arjun. What’s been weighing on you most is ' + this.areaPhrase(a) + (this.hardest(a) ? ', mostly ' + this.mostly(a) : '') + '. ' + (this.list(a.c2_day).length ? 'On a normal day, ' + this.youJ(a.c2_day) + '. ' : '');
         var ways = this.list(a.c2_way).filter(function (w) { return w !== self.still(); }).map(function (w) { return self.wayPhrase(w); });
         var did = this.joinNice(triedAll.map(function (t) { return self.triedPhrase(t, a); }));
         if (path === 'A') { story += 'You did take a step: you ' + did + '. But ' + (ways[0] || 'it didn’t stick') + '.'; }
@@ -1531,7 +1561,7 @@ class Component extends DCLogic {
         return { bot: [B('When should we talk next?')], kind: 'single', options: times, own: false, next: go('END') };
 
       case 'c4_how':
-        return { bot: [B('Today, two quick questions about how you went about it, and then I’d love to know how you’re feeling.'), B('When you ' + this.triedPhrase(tried[0], a) + ', how did it usually happen?')], kind: 'single', options: ['Lots in one go when I felt ready', 'A few every week', 'Only when something pushed me'], next: go('c4_felt') };
+        return { bot: [B('Today, two quick questions about how you went about it, and then I’d love to know how you’re feeling.'), B('When you ' + this.triedPhrase(tried[0], a) + ', how did it usually happen?')], kind: 'single', options: this.ar(a).how, next: go('c4_felt') };
       case 'c4_b1':
         return { bot: [B('Today, two quick questions about what happens when you think about starting, and then I’d love to know how you’re feeling.'), B('When you think about starting, what usually happens?')], kind: 'single', options: ['I overthink it', 'I put it off', 'I feel overwhelmed', 'I get excited, then stall'], next: go('c4_felt') };
       case 'c4_c1':
@@ -1715,18 +1745,18 @@ class Component extends DCLogic {
       Object.assign(s, { c2_day: [ar.day[0], ar.day[1]], c2_book: 'Tomorrow, 7:30 pm' });
       if (path === 'B') { Object.assign(s, { c2_tried: ['Not yet, honestly'], c2_way: ['Scared it won’t work'], c2_k1: 'Stay in with a book or a show', c2_k3: 'Time alone' }); }
       else if (path === 'C') { Object.assign(s, { c2_tried: [ar.tried[0].o], c2_way: [this.still()], c2_k1: 'Go out with friends', c2_k3: 'Time with people' }); }
-      else { Object.assign(s, { c2_tried: [ar.tried[0].o, ar.tried[1].o], c2_way: ['It slowly fizzled out'], c2_k1: 'Stay in with a book or a show', c2_k3: 'Time alone' }); }
+      else { Object.assign(s, { c2_tried: [ar.tried[0].o, ar.tried[1].o], c2_way: [ar.way[0].o], c2_k1: 'Stay in with a book or a show', c2_k3: 'Time alone' }); }
     }
     if (n >= 4) {
       if (path === 'B') { Object.assign(s, { c3_b1: ['Failing again'], c3_b2: 'Once or twice', c3_b3: [ar.first[0]] }); }
       else if (path === 'C') { Object.assign(s, { c3_c1: 'A few times a week', c3_c2: ['Results or replies'], c3_c3: '1 to 3 months' }); }
-      else { Object.assign(s, { c3_q0: ['It fizzled out'], c3_q1: ['Got bored'], c3_when: 'After a few days' }); }
+      else { Object.assign(s, { c3_q0: [ar.stop[0].o], c3_q1: [ar.stop[2].o], c3_when: 'After a few days' }); }
       s.c3_book = 'Tomorrow, 7:30 pm';
     }
     if (n >= 5) {
       if (path === 'B') { Object.assign(s, { c4_b1: 'I overthink it', c4_felt: 'I beat myself up', c4_ready: 'Unsure', c4_easier: ['Smaller steps', 'Someone checking in'], c4_energy: '15 minutes' }); }
       else if (path === 'C') { Object.assign(s, { c4_c1: 'Doing the same thing over and over', c4_felt: 'Frustrated', c4_ready: 'Ready', c4_easier: ['Seeing progress'], c4_energy: '30 minutes' }); }
-      else { Object.assign(s, { c4_how: 'Lots in one go when I felt ready', c4_felt: 'I beat myself up', c4_ready: 'Unsure', c4_easier: ['Smaller steps', 'Someone checking in'], c4_energy: '15 minutes' }); }
+      else { Object.assign(s, { c4_how: ar.how[0], c4_felt: 'I beat myself up', c4_ready: 'Unsure', c4_easier: ['Smaller steps', 'Someone checking in'], c4_energy: '15 minutes' }); }
       s.c4_book = 'Tomorrow, 7:30 pm';
     }
     return s;
